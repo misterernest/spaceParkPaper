@@ -1,0 +1,135 @@
+
+	<style media="screen">
+		.form-group>input, .form-group>select{
+			color: #555;
+			padding: 10px;
+			height: auto;
+			border-radius: 5px;
+			border: 1px solid #eee;
+			margin: 1rem auto;
+		}
+	</style>
+
+
+	<!-- Modal -->
+	<div class="modal fade" id="modal_1" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header" style="background: #1a70f6; text-align:center; height: 78px;">
+
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel_1" style="color: white; font-weight:bold; display: inline-block;">DATOS RESERVA</h4>
+				</div>
+				<div class="modal-body">
+
+					<form action="">
+						<div class="col-lg-6">
+							<div class="form-group">
+								<input id="anchoX_1" type="number" required="true" class="form-control input-modal" name="ancho"   autocomplete  placeholder="Ancho en metros">
+							</div>
+						</div>
+						<div class="col-lg-6">
+							<div class="form-group">
+								<input id="largoY_1" type="number" required="true" class="form-control" name="largoY"   autocomplete  placeholder="Largo en metros" >
+							</div>
+						</div>
+						<div class="col-lg-6">
+							<div class="form-group">
+								<select type="select" required id="categoria_1" class="form-control" style="color:rgb(148, 157, 170);">
+									<option value="" >Categoria</option>
+									<option value="SAILING_YACHT">SAILING YACHT</option>
+							        <option value="MOTOR_YACHT">MOTOR YACHT</option>
+							        <option value="CAT">CAT</option>
+							        <option value="PESCA">PESCA</option>
+									<option value="ELEMENTO">ELEMENTO</option>
+					      		</select>
+							</div>
+						</div>
+						<div class="col-lg-6">
+							<div class="form-group">
+								<input id="cliente_1" type="text" required="true" class="form-control" name="cliente" maxlength="50"  autocomplete  placeholder="Nombre cliente" >
+							</div>
+						</div>
+
+						<div class="col-lg-6">
+							<div class="form-group">
+								<input id="date_1" type="text" required="true" class="form-control" name="fecha_inicial"  placeholder="fecha activación">
+							</div>
+						</div>
+
+
+						<div class="col-lg-6">
+							<div class="form-group">
+								<input  id="time_1" type="text" required="true" class="form-control" name="hora_inicial"  placeholder="hora activación"  >
+							</div>
+						</div>
+
+
+
+						<div class="col-lg-6">
+							<div class="form-group">
+								<input id="date1_1" type="text" required="true" class="form-control" name="fecha_final"  placeholder="fecha de retiro"   style="padding: 10px; height: auto; border-radius: 5px; border: 1px solid #eee;">
+							</div>
+						</div>
+
+
+						<div class="col-lg-6">
+							<div class="form-group">
+								<input  id="time1_1" type="text" required="true" class="form-control" name="hora_final"  placeholder="hora de retiro">
+							</div>
+						</div>
+						<div class="col-lg-12">
+							<div class="form-group">
+								<textarea id="comentario_1" type="text" class="form-control" name="comentario" maxlength="50"  autocomplete  placeholder="Añadir comentario" ></textarea>
+							</div>
+						</div>
+
+					</div>
+					<div class="modal-footer">
+						<button type="button" id="guardar_1" class="btn btn-primary" style="background: #1a70f6; border-color: white; width: 100%; height: 50px; border-radius: 5px;">Guardar</button>
+					</div>
+
+				</form>
+			</div>
+		</div>
+	</div>
+
+
+<!--script manejo del modal de fecha y hora-->
+
+<!-- <script type="text/javascript">
+	$(document).ready(function()
+	{
+		$('#date_1').bootstrapMaterialDatePicker
+		({
+			time: false,
+			clearButton: false,
+			lang: 'es',
+		});
+
+		$('#time_1').bootstrapMaterialDatePicker
+		({
+			date: false,
+			shortTime: false,
+			format: 'HH:mm'
+		});
+
+		$('#date1_1').bootstrapMaterialDatePicker
+		({
+			time: false,
+			clearButton: false,
+			lang: 'es',
+		});
+
+		$('#time1_1').bootstrapMaterialDatePicker
+		({
+			date: false,
+			shortTime: false,
+			format: 'HH:mm'
+		});
+
+
+
+		$.material.init()
+	});
+</script> -->

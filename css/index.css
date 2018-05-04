@@ -1,0 +1,25 @@
+.box-login{
+  border: 1px solid #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  margin: 0 auto;
+  float: none;
+  margin-left: auto;
+  margin-right: auto;
+}
+form>div{
+  margin: 0.8rem auto;
+}
+h4{
+  font-weight: bold;
+}
+input{
+  font-size: 1rem;
+  padding: 0.6rem 1rem;
+  width: 80%;
+  border: 0px;
+  border-radius: 3px;
+}
+.boton-log{
+  margin-top: 2rem;
+}
