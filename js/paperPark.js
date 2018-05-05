@@ -34,6 +34,17 @@ $('#img-park').attr('width', zoom_width) // tamaño sin zoom
 $('#canvas1').attr('width', zoom_width) // tamaño sin zoom
 $('#canvas1').attr('height', zoom_height) // tamaño sin zoom
 view.size.set(zoom_width, zoom_height) // tamaño sin zoom del canvas en paper
+
+//variables de colores según categoria
+var colorCategoria = {
+  SAILING_YACHT:"rgb(255, 0, 0)",//RED
+  MOTOR_YACHT:"rgb(51, 204, 51)",//GREEN
+  CAT:"rgb(0, 0, 255)",//BLUE
+  PESCA:"rgb(255, 255, 0)",//YELLOW
+  ELEMENTO:"rgb(220, 0, 210)",//PURPLE
+  TENDER:"rgb(255,99,71)"//TOMATO
+};
+
 // array de coordenadas dentro de la bodega
 var limite = Array(
   [217, 349],
@@ -95,26 +106,30 @@ function creaCuadricula () { // funcion que pinta la cuadricula
 
 // funcion que pinta los elementos contenidos en arrayElementosConsulta
 function pintaElementos () {
-  // var proporcion = (zoom) ? 1 : zoomProporcion
-  // var fechaInicialArray = new Date();
-  // var fechaFinalArray = new Date();
-  // for (var i = 0; i < arrayElementosConsulta.length; i++) {
-  //   fechaInicialArray.setTime(Date.parse(arrayElementosConsulta[i].fecha_incial))
-  //   fechaFinalArray.setTime(Date.parse(arrayElementosConsulta[i].fecha_final))
-  //   if (fechaInicialArray <= fechaSeleccionada && fechaFinalArray >= fechaSeleccionada) {
-  //     project.activeLayer.addChild(
-  //       new Path.Circle(new Point(80, 50), 30)
-  //     )
-  //     //   new Rectangle({
-  //     //     point: [20, 20],
-  //     //     size: [60, 60]
-  //     //   })
-  //     // )
-  //     //console.log(project.activeLayer.);
-  //   }
-  // }
+  project.activeLayer.removeChildren(2)
+  var proporcion = (zoom) ? 1 : zoomProporcion
+  var fechaInicialArray = new Date();
+  var fechaFinalArray = new Date();
+  for (var i = 0; i < arrayElementosConsulta.length; i++) {
+    fechaInicialArray.setTime(Date.parse(arrayElementosConsulta[i].fecha_incial))
+    fechaFinalArray.setTime(Date.parse(arrayElementosConsulta[i].fecha_final))
+    if (fechaInicialArray <= fechaSeleccionada && fechaFinalArray >= fechaSeleccionada) {
+      Path.Rectangle({
+        point: [
+          parseInt(arrayElementosConsulta[i].coordenada_x * proporcion ),
+          parseInt(arrayElementosConsulta[i].coordenada_y * proporcion )
+        ],
+        size: [
+          parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2),
+          parseInt(arrayElementosConsulta[i].largo_y * proporcion * mts2)
+        ],
+        fillColor: colorCategoria[arrayElementosConsulta[i].categoria],
+        strokeWidth: 0,
+        name: '"' + arrayElementosConsulta[i].id + '"'
+      })
+    }
+  }
 }
-
 function onMouseDown(event) {
   // If the position of the mouse is within the path,
   // set its fill color to red, otherwise set it to
@@ -145,6 +160,7 @@ function zoomDo () {
     view.size.set(zoom_width, zoom_height)
     creaCuadricula()
     perimetro()
+    pintaElementos()
   } else {
     zoom = true
     $('#calendar').attr('hidden', 'hidden')
@@ -158,6 +174,7 @@ function zoomDo () {
     view.size.set(width, height) // cambio de tamaño del canvas en paper
     creaCuadricula()
     perimetro()
+    pintaElementos ()
   }
 }
 
