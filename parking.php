@@ -76,7 +76,7 @@
   <div class="container" id="container-canvas-1">
     <div class="container-canvas width-70" id="container-canvas">
         <img src="img/mapa.png" class="img-park" id="img-park" >
-        <canvas class="canvas1" id="canvas1">
+        <canvas class="canvas1" id="canvas1" width="730" height="526" resize>
           Su navegador no soporta canvas :(
         </canvas>
     </div>

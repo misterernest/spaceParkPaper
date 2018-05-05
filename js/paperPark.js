@@ -10,6 +10,10 @@ var cantDeshacer = 0 // contador de elementos  deshacer inicializa
 var zoom = false // comienza con la vista en miniatura
 var arrayElementosConsulta = new Array()
 
+// variables de pintar en el plano
+var pathPerimetro = new Path() // path del perimetro
+var CPathCuadricula = new CompoundPath() // cuadricula del mapa en un solo conjunto
+
 /* Variables de fecha actual para hacer la consulta incial */
 var hoy = new Date() // la fecha actual para la consulta
 var dd = hoy.getDate() // dia
@@ -20,6 +24,7 @@ var min = 0 // minutos y segundos en ceros
 var seg = 0
 var mesText = mesNumtext(mm)
 var mesActual = mesText
+var fechaSeleccionada = hoy
 consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
 
 zoomProporcion = $('#container-canvas').width() / width // determina el factor de cambio tamaños
@@ -57,10 +62,9 @@ var limite = Array(
   [217, 349]
 )
 
-var CPathCuadricula = new CompoundPath()
-var pathPerimetro = new Path() // path del perimetro
+// ////////////////////////////// FUNCIONES DE PINTAR EN CANVAS
 perimetro() // llamada a la funcion que pinta el perimetro
-function perimetro () {
+function perimetro () { // funcion que pinta el permietro y lo actualiza
   pathPerimetro.removeSegments()
   pathPerimetro.strokeColor = 'red'
   var proporcion = (zoom) ? 1 : zoomProporcion // sin zoom y con zoom
@@ -72,9 +76,9 @@ function perimetro () {
   pathPerimetro.closed = true
 }
 
-var CPathCuadricula = new CompoundPath() // cuadricula del mapa en un solo conjunto
+
 creaCuadricula() // llamada inicial a la cuadricula del mapa
-function creaCuadricula () {
+function creaCuadricula () { // funcion que pinta la cuadricula
   CPathCuadricula.removeChildren() // remueve la cuadricula para ser pintada nuevamente
   CPathCuadricula.strokeColor = 'black' // color de la cuadricula
   CPathCuadricula.strokeWidth = 0.5 // ancho de la cuadricula
@@ -86,7 +90,41 @@ function creaCuadricula () {
     CPathCuadricula.addChild(new Path([i, 0], [i, view.size.height]))
   }
 }
-// }
+
+// //////////////////////////// FUNCIONES PINTAR ELEMENTOS
+
+// funcion que pinta los elementos contenidos en arrayElementosConsulta
+function pintaElementos () {
+  // var proporcion = (zoom) ? 1 : zoomProporcion
+  // var fechaInicialArray = new Date();
+  // var fechaFinalArray = new Date();
+  // for (var i = 0; i < arrayElementosConsulta.length; i++) {
+  //   fechaInicialArray.setTime(Date.parse(arrayElementosConsulta[i].fecha_incial))
+  //   fechaFinalArray.setTime(Date.parse(arrayElementosConsulta[i].fecha_final))
+  //   if (fechaInicialArray <= fechaSeleccionada && fechaFinalArray >= fechaSeleccionada) {
+  //     project.activeLayer.addChild(
+  //       new Path.Circle(new Point(80, 50), 30)
+  //     )
+  //     //   new Rectangle({
+  //     //     point: [20, 20],
+  //     //     size: [60, 60]
+  //     //   })
+  //     // )
+  //     //console.log(project.activeLayer.);
+  //   }
+  // }
+}
+
+function onMouseDown(event) {
+  // If the position of the mouse is within the path,
+  // set its fill color to red, otherwise set it to
+  // black:
+  if (pathPerimetro.contains(event.point)) {
+    alert('rojo')
+  } else {
+    alert('negro')
+  }
+}
 
 // function de zoom para cambiar el tamaño del mapa
 $('#zoom').click(function () {
@@ -182,10 +220,7 @@ function mesNumtext (num) {
   }
   return mesText
 }
-// //////////////////////////// FUNCIONES PINTAR ELEMENTOS
-function pintaElementos () {
-  console.log(arrayElementosConsulta)
-}
+
 // //////////////////////////// FUNCIONES DESHACER
 
 // cambia de estado el boton deshacer si hay elementos para deshacer en cola
