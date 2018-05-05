@@ -20,7 +20,6 @@
   <!-- CON ESTA NO SALE EL MODAL -->
   <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script> -->
 
-  <script src="js/mover_elemento.js"></script>
 
   <!-- <script src='calendario/fullcalendar.js'></script> -->
 
@@ -28,12 +27,6 @@
 
 
   $(document).ready(function() {
-  let canvas1 = $("#canvas1").get(0);
-  const context1 = canvas1.getContext("2d");
-  let canvas2 = $("#canvas2").get(0);
-  const context2 = canvas2.getContext("2d");
-  let canvas3 = $("#canvas3").get(0);
-  const context3 = canvas3.getContext("2d");
    var calendar = $('#calendar').fullCalendar({
     editable:true,
     header:{
@@ -62,10 +55,7 @@
     selectHelper:true,
     select: function(start, end, allDay)
     {
-      context3.clearRect(0, 0, canvas3.width, canvas3.width);
       let fechaActual = new Date(start._d);
-      fechaSeleccionada = fechaActual;
-      recorreConsulta(respuestaConsulta, context3, canvas3);
 
       //console.log(start._d);
     },

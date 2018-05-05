@@ -15,20 +15,10 @@
   <title>space parking</title>
   <script src="./js/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="./js/dist/paper-full.js"></script>
-  <script type="text/javascript" src="./js/function_global.js"></script>
-  <script type="text/javascript" src="./js/code_global.js"></script>
-  <script type="text/javascript" src="./js/asignar_espacio.js"></script>
-  <script type="text/javascript" src="./js/zoom_lupa.js"></script>
-  <script type="text/javascript" src="./js/zoom_mapa.js"></script>
-  <script type="text/javascript" src="./js/eliminar_elemento.js"></script>
-  <script type="text/javascript" src="./js/cerrar_sesion.js"></script>
-  <script type="text/javascript" src="./js/deshacer.js"></script>
-  <!-- <script type="text/javascript" src="./js/mover_elemento.js"></script> -->
-  <script type="text/javascript" src="./js/efect_mousemove.js"></script>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" />
 
-	<link rel="stylesheet" href="./css/bootstrap-material-datetimepicker.css" />
-	<link href='http://fonts.googleapis.com/css?family=Roboto:400,500' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="./css/bootstrap-material-datetimepicker.css" />
+	<link href="http://fonts.googleapis.com/css?family=Roboto:400,500" rel="stylesheet" type="text/css">
 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 
@@ -47,16 +37,16 @@
     <img src="img/lupa-menos.png" alt="lupa-zoom-out" id="zoom-out" hidden="hidden">
   </div>
   <div class="btn-park btn-inactivo btn-rollback" id="deshacer">
-    <img src="img/deshacer.png" alt="lupa-zoom-in" id="zoom-in">
+    <img src="img/deshacer.png" alt="lupa-zoom-in">
   </div>
   <div class="btn-park btn-mover1" id="mover">
-    <img src="img/mover.png" alt="lupa-zoom-in" id="zoom-in">
+    <img src="img/mover.png" alt="lupa-zoom-in">
   </div>
   <div class="btn-park btn-actualizarFecha1" id="actualiza-fecha">
-    <img src="img/editar-fecha.png" alt="lupa-zoom-in" id="zoom-in">
+    <img src="img/editar-fecha.png" alt="lupa-zoom-in">
   </div>
   <div class="btn-park btn-eliminar1" id="eliminar">
-    <img src="img/eliminar.png" alt="lupa-zoom-in" id="zoom-in">
+    <img src="img/eliminar.png" alt="lupa-zoom-in">
   </div>
   <a href="calendar.php" target="_blank">
     <div class="btn-park btn-gant" id="gant">
@@ -89,10 +79,6 @@
         <canvas class="canvas1" id="canvas1">
           Su navegador no soporta canvas :(
         </canvas>
-        <canvas class="canvas1" id="canvas3" >
-        </canvas>
-        <canvas class="canvas1" id="canvas2" >
-        </canvas>
     </div>
 
     <!-- comienza -->
@@ -101,11 +87,8 @@
 
         width: 40%;
         margin: 1rem auto 0;
-        margin-top: 5.5rem;
+        margin-top: 7rem;
 
-      }
-
-      .cal>h2{
       }
     </style>
     <div class="cal" id="calendar">
