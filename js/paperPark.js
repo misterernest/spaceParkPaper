@@ -6,7 +6,9 @@ var zoomProporcion // delta de cambio del canvas
 var zoom_width // tamaño del canvas sin zoom
 var zoom_height // tamaño del canvas sin zoom
 var btn_deshacer = false // boton que se activa si hay para deshacer
+var cantDeshacer = 0 // contador de elementos  deshacer inicializa
 var zoom = false // comienza con la vista en miniatura
+var arrayElementosConsulta = new Array()
 
 /* Variables de fecha actual para hacer la consulta incial */
 var hoy = new Date() // la fecha actual para la consulta
@@ -18,6 +20,7 @@ var min = 0 // minutos y segundos en ceros
 var seg = 0
 var mesText = mesNumtext(mm)
 var mesActual = mesText
+consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
 
 zoomProporcion = $('#container-canvas').width() / width // determina el factor de cambio tamaños
 zoom_width = Math.round(width * zoomProporcion) // haya el ancho sin zoom
@@ -95,7 +98,7 @@ function zoomDo () {
     zoom = false
     $('#calendar').removeAttr('hidden', 'hidden')
     $('#zoom-in').removeAttr('hidden')
-    $('#zoom-out').attr('hidden', 'hidden');
+    $('#zoom-out').attr('hidden', 'hidden')
     $('#container-canvas').removeClass('width-100')
     $('#container-canvas').addClass('width-70')
     $('#img-park').attr('width', zoom_width)
@@ -179,4 +182,69 @@ function mesNumtext (num) {
   }
   return mesText
 }
+// //////////////////////////// FUNCIONES PINTAR ELEMENTOS
+function pintaElementos () {
+  console.log(arrayElementosConsulta)
+}
+// //////////////////////////// FUNCIONES DESHACER
+
+// cambia de estado el boton deshacer si hay elementos para deshacer en cola
+function activaBtnDeshacer () {
+  if (cantDeshacer > 0) {
+    btn_deshacer=true;
+    $("#deshacer").removeClass('btn-inactivo');
+}
+}
+
+$('#deshacer').click(function () {
+  if(btn_deshacer) {
+    deshacerAjax()
+  }
+})
+
+function deshacerAjax () {
+  // Convertir a objeto
+  var url = 'deshacer.php' // este es el PHP al que se llama por AJAX
+  $.ajax({
+    method: 'POST',
+    url: url,
+    success: function(response) {
+      // resultado es un array que indica exitoso o no.
+      location.reload()
+    },
+    error: function ( jqXHR, textStatus, errorThrown ) {
+      $('#myAlertLabel').text('ERROR')
+      $('#msj-alert').text('')
+      $('#msj-alert').append('<div class="col-lg-11 col-md-11">ERROR ' + textStatus + ' - ' + errorThrown + '</div>')
+      $('#alert').modal('show')
+    }
+  })
+}
 // //////////////////////////// FUNCIONES AJAX
+
+/* Consulta la base de datos por meses */
+function consultarBaseDatos (date) {
+  // Convertir a objeto
+  var data = {}
+
+  data.date = date // Fecha actual con la que se va ha hacer la consulta
+  data.categoria = ''
+
+  var url = 'consultar.php' // este es el PHP al que se llama por AJAX
+
+  $.ajax({
+    method: 'POST',
+    url: url,
+    data: data, // acá están todos los parámetros (valores a enviar) del POST
+    success: function (response) {
+      $('fecha_range').removeAttr('hidden')
+
+      $('fecha_caja').removeAttr('hidden')
+      cantDeshacer = response[1][0]
+      activaBtnDeshacer()
+      arrayElementosConsulta = response[0]
+      pintaElementos()
+    },
+    dataType:'json'
+  })
+}

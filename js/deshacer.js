@@ -1,10 +1,10 @@
-
-
 $("#deshacer").click(function () {
   if(btn_deshacer) {
     deshacerAjax()
   }
 })
+
+console.log(btn_deshacer);
 function deshacerAjax () {
   // Convertir a objeto
   var url = 'deshacer.php' // este es el PHP al que se llama por AJAX

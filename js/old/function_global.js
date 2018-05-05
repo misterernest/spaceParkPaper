@@ -85,7 +85,6 @@ function pintaAreaOcupada(objConsulta, context){
 }
 /* Funcion que activa o desactiva el deshacer */
 function deshacerButton(){
-
   if(cantDeshacer > 0){
     btn_deshacer=true;
     $("#deshacer").removeClass('btn-inactivo');

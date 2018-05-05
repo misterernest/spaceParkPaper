@@ -3,10 +3,9 @@
 error_reporting(-1);
 ini_set('display_errors', 'On');
 
-if ( isset($_POST['date']) && !empty($_POST['date']) && isset($_POST['dias']) && !empty($_POST['dias']) )  {
+if ( isset($_POST['date']) && !empty($_POST['date']) )  {
 	// Datos recibidos
 	$fecha = $_POST['date'];
-	$dias = $_POST['dias'];
 	$categoria = $_POST['categoria'];
 
 	//$fechai = date('Y-m-d');
