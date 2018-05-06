@@ -19,6 +19,7 @@ var hoy = new Date() // la fecha actual para la consulta
 var dd = hoy.getDate() // dia
 var mm = hoy.getMonth() + 1 // hoy es 0!
 var yyyy = hoy.getFullYear() // año
+var dias = new Array ("Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado");
 // var hour = hoy.getHours() // hora
 // var min = 0 // minutos y segundos en ceros
 // var seg = 0
@@ -124,7 +125,7 @@ function pintaElementos () {
         ],
         fillColor: colorCategoria[arrayElementosConsulta[i].categoria],
         strokeWidth: 0,
-        name: '"' + arrayElementosConsulta[i].id + '"'
+        name: '"' + i + '"'
       })
     }
   }
@@ -166,15 +167,43 @@ function zoomDo () {
     pintaElementos ()
   }
 }
+
+// ////////EFECTO DEL MOUSE AL PASAR SOBRE ELEMENTO// /////////////////////////////////
+
+
 function onMouseMove (event) {
   project.activeLayer.selected = false;
-  if (event.item) {
-    if(event.item.name != null) {
-      event.item.selected = true;
-    }
+  if (event.item && event.item.name != null) {
+    popupElement(event.item)
+  } else {
+    $("#info-popup").attr("hidden", "hidden");
   }
 }
+function popupElement (elementItem) {
+  elementItem.selected = true
+  var i = elementItem.name.slice(1, -1);
+  var proporcion = (zoom) ? 1 : zoomProporcion
+  $("#info-head").text('id: ' + arrayElementosConsulta[i].id + ' - ' + arrayElementosConsulta[i].categoria)
+  $("#info-cliente").text('Cliente: ' + arrayElementosConsulta[i].cliente)
+  var dateA = new Date();
+  var dateB = new Date();
+  dateA.setTime(Date.parse(arrayElementosConsulta[i].fecha_incial));
+  var mes1 = mesNumtext(dateA.getMonth()+1);
+  dateB.setTime(Date.parse(arrayElementosConsulta[i].fecha_final));
+  var mes2 = mesNumtext(dateB.getMonth()+1);
+  $("#info-fecha").text(
+    dias[dateA.getDay()]
+    + ' '
+    + dateA.getDate() + ' de ' + mes1 + ' de ' + dateA.getFullYear() + ' - ' + dias[dateB.getDay()] + ' ' + dateB.getDate() + ' de ' + mes2 + ' de ' + dateB.getFullYear());
+  $("#info-size").text('W:' + arrayElementosConsulta[i].ancho_x + 'mts X H:' + arrayElementosConsulta[i].largo_y + ' mts');
+  $("#info-popup").removeAttr("hidden");
+  $("#info-popup").removeClass("info-popup-zoom0");
+  $("#info-popup").addClass("info-popup-zoom");
+}
 
+
+
+// /////////// FIN DE ELEMENTO /////////////////////////////////////
 /*
 mesNumtext convierte el numero del mes en texto
 */
