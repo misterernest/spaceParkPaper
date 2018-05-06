@@ -168,19 +168,30 @@ function zoomDo () {
   }
 }
 
-// ////////EFECTO DEL MOUSE AL PASAR SOBRE ELEMENTO// /////////////////////////////////
+// ////////EFECTO DEL MOUSE AL HACER CLIC SOBRE ELEMENTO// /////////////////////////////////
 
+
+
+// ////////EFECTO DEL MOUSE AL PASAR SOBRE ELEMENTO// /////////////////////////////////
 
 function onMouseMove (event) {
   project.activeLayer.selected = false;
-  if (event.item && event.item.name != null) {
+  pintaElementos()
+  if (event.item && event.item.id != 3 && event.item.id != 1) {
     popupElement(event.item)
   } else {
     $("#info-popup").attr("hidden", "hidden");
   }
 }
 function popupElement (elementItem) {
-  elementItem.selected = true
+  posXActual = elementItem.position.x
+  posYActual = elementItem.position.y
+  elementItem.position.x = posXActual - 3
+  elementItem.position.y = posYActual - 3
+  //console.log(elementItem.y);
+  elementItem.shadowOffset = new Point(3, 3)
+  elementItem.shadowColor = 'black'
+  elementItem.shadowBlur = 12
   var i = elementItem.name.slice(1, -1);
   var proporcion = (zoom) ? 1 : zoomProporcion
   $("#info-head").text('id: ' + arrayElementosConsulta[i].id + ' - ' + arrayElementosConsulta[i].categoria)
@@ -197,8 +208,13 @@ function popupElement (elementItem) {
     + dateA.getDate() + ' de ' + mes1 + ' de ' + dateA.getFullYear() + ' - ' + dias[dateB.getDay()] + ' ' + dateB.getDate() + ' de ' + mes2 + ' de ' + dateB.getFullYear());
   $("#info-size").text('W:' + arrayElementosConsulta[i].ancho_x + 'mts X H:' + arrayElementosConsulta[i].largo_y + ' mts');
   $("#info-popup").removeAttr("hidden");
-  $("#info-popup").removeClass("info-popup-zoom0");
-  $("#info-popup").addClass("info-popup-zoom");
+  if (proporcion == 1) {
+    $("#info-popup").removeClass("info-popup-zoom0");
+    $("#info-popup").addClass("info-popup-zoom");
+  } else {
+    $("#info-popup").removeClass("info-popup-zoom");
+    $("#info-popup").addClass("info-popup-zoom0");
+  }
 }
 
 
@@ -360,13 +376,12 @@ var calendar = $('#calendar').fullCalendar({
    var fechaActual = new Date(start._d);
    fechaSeleccionada = fechaActual;
    pintaElementos()
-   //console.log(start._d);
+
  },
  editable:false,
 eventClick:function(event)
  {
    var id = event.id;
-   //console.log(event.categorias);
    var fechaStart = new Date(event.start);
    var fechaEnd = new Date(event.end);
    $('#largoY_1').val(event.largo);
@@ -418,7 +433,6 @@ resultado = new Array();
     data: data,   //acá están todos los parámetros (valores a enviar) del POST
     success: function(response){
       // resultado es un array que indica exitoso o no.
-   console.log(response);
 
       if(response == "1"){
         $('#myAlertLabel').text("ACTUALIZACION")
