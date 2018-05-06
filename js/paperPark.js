@@ -3,9 +3,9 @@ var mts2 = 12 // metros en px
 var width=2217 // tamaño del canvas
 var height=1598 // tamaño del canvas
 var zoomProporcion // delta de cambio del canvas
-var zoom_width // tamaño del canvas sin zoom
-var zoom_height // tamaño del canvas sin zoom
-var btn_deshacer = false // boton que se activa si hay para deshacer
+var zoomWidth // tamaño del canvas sin zoom
+var zoomHeight // tamaño del canvas sin zoom
+var btnDeshacer = false // boton que se activa si hay para deshacer
 var cantDeshacer = 0 // contador de elementos  deshacer inicializa
 var zoom = false // comienza con la vista en miniatura
 var arrayElementosConsulta = new Array()
@@ -19,21 +19,21 @@ var hoy = new Date() // la fecha actual para la consulta
 var dd = hoy.getDate() // dia
 var mm = hoy.getMonth() + 1 // hoy es 0!
 var yyyy = hoy.getFullYear() // año
-var hour = hoy.getHours() // hora
-var min = 0 // minutos y segundos en ceros
-var seg = 0
+// var hour = hoy.getHours() // hora
+// var min = 0 // minutos y segundos en ceros
+// var seg = 0
 var mesText = mesNumtext(mm)
 var mesActual = mesText
 var fechaSeleccionada = hoy
 consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
 
 zoomProporcion = $('#container-canvas').width() / width // determina el factor de cambio tamaños
-zoom_width = Math.round(width * zoomProporcion) // haya el ancho sin zoom
-zoom_height = Math.round(height * zoomProporcion) // haya el alto sin zoom
-$('#img-park').attr('width', zoom_width) // tamaño sin zoom
-$('#canvas1').attr('width', zoom_width) // tamaño sin zoom
-$('#canvas1').attr('height', zoom_height) // tamaño sin zoom
-view.size.set(zoom_width, zoom_height) // tamaño sin zoom del canvas en paper
+zoomWidth = Math.round(width * zoomProporcion) // haya el ancho sin zoom
+zoomHeight = Math.round(height * zoomProporcion) // haya el alto sin zoom
+$('#img-park').attr('width', zoomWidth) // tamaño sin zoom
+$('#canvas1').attr('width', zoomWidth) // tamaño sin zoom
+$('#canvas1').attr('height', zoomHeight) // tamaño sin zoom
+view.size.set(zoomWidth, zoomHeight) // tamaño sin zoom del canvas en paper
 
 //variables de colores según categoria
 var colorCategoria = {
@@ -143,10 +143,10 @@ function zoomDo () {
     $('#zoom-out').attr('hidden', 'hidden')
     $('#container-canvas').removeClass('width-100')
     $('#container-canvas').addClass('width-70')
-    $('#img-park').attr('width', zoom_width)
-    $('#canvas1').attr('width', zoom_width)
-    $('#canvas1').attr('height', zoom_height)
-    view.size.set(zoom_width, zoom_height)
+    $('#img-park').attr('width', zoomWidth)
+    $('#canvas1').attr('width', zoomWidth)
+    $('#canvas1').attr('height', zoomHeight)
+    view.size.set(zoomWidth, zoomHeight)
     creaCuadricula()
     perimetro()
     pintaElementos()
@@ -164,6 +164,14 @@ function zoomDo () {
     creaCuadricula()
     perimetro()
     pintaElementos ()
+  }
+}
+function onMouseMove (event) {
+  project.activeLayer.selected = false;
+  if (event.item) {
+    if(event.item.name != null) {
+      event.item.selected = true;
+    }
   }
 }
 
@@ -232,13 +240,13 @@ function mesNumtext (num) {
 // cambia de estado el boton deshacer si hay elementos para deshacer en cola
 function activaBtnDeshacer () {
   if (cantDeshacer > 0) {
-    btn_deshacer=true;
+    btnDeshacer=true;
     $("#deshacer").removeClass('btn-inactivo');
 }
 }
 
 $('#deshacer').click(function () {
-  if(btn_deshacer) {
+  if(btnDeshacer) {
     deshacerAjax()
   }
 })
