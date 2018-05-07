@@ -26,7 +26,7 @@ var hoy = new Date() // la fecha actual para la consulta
 var dd = hoy.getDate() // dia
 var mm = hoy.getMonth() + 1 // hoy es 0!
 var yyyy = hoy.getFullYear() // año
-var dias = new Array ("Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado");
+var dias = new Array ('Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado');
 // var hour = hoy.getHours() // hora
 // var min = 0 // minutos y segundos en ceros
 // var seg = 0
@@ -218,11 +218,15 @@ var elementoMovimiento // variable que se va a modificar
 
 function onMouseDown (event) {
   var movePath = false
+
   var hitResult = project.hitTest(event.point, hitOptions)
   if (!hitResult) {
     if (btnMover) {
       itemSeleccionado = -1
       accionesBtn()
+    }
+    if (!zoom) {
+      zoomMapa(event)
     }
     return
   }
@@ -230,18 +234,34 @@ function onMouseDown (event) {
   if (movePath) {
     elementoMovimiento = hitResult.item // le asigna el item a un elemento que va a seleccionar
     itemSeleccionado = elementoMovimiento.name.slice(1, -1)
+    if (!zoom) {
+      zoomMapa(event)
+    }
     if (!btnMover) {
       accionesBtn()
     }
+
     // project.activeLayer.addChild(hitResult.item)
   }
 }
 // function onMouseDrag(event) {
 //   if (elementoMovimiento) {
 //     elementoMovimiento.position += event.delta
-//     console.log(elementoMovimiento.position);
 //   }
 // }
+
+// ////////UBICA COORDENADA EN EL ZOOM////////////////////////////////
+
+function zoomMapa(e){
+  var posX1 = e.point.x/view.size.width;
+  var posY1 = e.point.y/view.size.height;
+  zoomDo();
+  var posX = ($("#canvas1").width() * posX1) - ($("#container-canvas").width() * 0.3) ;
+  var posY = ($("#canvas1").height() * posY1) - ($("#container-canvas").height() * 0.3);
+  $("#container-canvas").scrollLeft(posX);
+  $("#container-canvas").scrollTop(posY);
+}
+
 // ////////EFECTO DEL MOUSE AL PASAR SOBRE ELEMENTO// /////////////////////////////////
 function onMouseMove (event) {
   project.activeLayer.selected = false;
@@ -355,6 +375,122 @@ function eliminarElementoBD (id) {
 
 
 // /////////////////////FIN FUNCION ELIMINAR //////////////////////////
+
+// /////////////////////FUNCION ACTUALIZAR ////////////////////////////
+
+//ventanaActualiza('Desea actualizar los datos del elemento', 2)
+function ventanaActualiza (mensaje, tipoActualizacion) {
+  $('#confirm1').modal('hide');
+  $('#anchoX').val(arrayElementosConsulta[itemSeleccionado].ancho_x)
+  $('#largoY').val(arrayElementosConsulta[itemSeleccionado].largo_y);
+  $('#date').val(arrayElementosConsulta[itemSeleccionado].fecha_incial.slice(0, 10));
+  $('#date1').val(arrayElementosConsulta[itemSeleccionado].fecha_final.slice(0, 10));
+  $('#time').val(arrayElementosConsulta[itemSeleccionado].fecha_incial.slice(11));
+  $('#time1').val(arrayElementosConsulta[itemSeleccionado].fecha_final.slice(11));
+  $('#categoria').val(arrayElementosConsulta[itemSeleccionado].categoria);
+  $('#cliente').val(arrayElementosConsulta[itemSeleccionado].cliente);
+  $('#comentario').html(arrayElementosConsulta[itemSeleccionado].comentario);
+  $('#modal').modal('show')
+  $('#guardar').click(function () {
+    var anchoCuadro = $('#anchoX').val();
+    var largoCuadro = $('#largoY').val();
+    var mensaje = new Array();
+    $('#msj-alert').text('');
+    var valido = true;
+    if (anchoCuadro == '' || largoCuadro == '' || anchoCuadro <= 0 || largoCuadro <= 0) {
+      mensaje.push('Ancho y largo del area son obligatorios y deben ser positivo');
+      valido = false;
+    }
+
+    if ($('#date').val() == '' || $('#time').val() == '') {
+      mensaje.push('Fecha y hora inicial son obligatorios');
+      valido = false;
+    }
+
+    if ($('#date1').val() == '' || $('#time1').val() == '') {
+      mensaje.push('Fecha y hora final son obligatorios');
+      valido = false;
+    }
+
+    if (validaFecha($('#date').val(), $('#date1').val())) {
+      mensaje.push('Fecha inicial debe ser mayor de la fecha final');
+      valido = false;
+    }
+
+    if ($('#cliente').val() == '') {
+      mensaje.push('El cliente es un campo obligatorio')
+      valido = false;
+    }
+    if (!valido) {
+      $('#myAlertLabel').text('ADVERTENCIA')
+      for (var i = 0; i < mensaje.length; i++) {
+        $('#msj-alert').append('<div class="col-lg-11 col-md-11">' + mensaje[i] + '</div>')
+      }
+      $('#alert').modal('show');
+    }else if (valido) {
+      $('#modal').modal('hide');
+    }
+
+    if (valido) {
+      var ancho = $('#anchoX').val();
+      var largo = $('#largoY').val();
+      var date1 = $('#date').val();
+      var date2 = $('#date1').val();
+      var time1 = $('#time').val();
+      var time2 = $('#time1').val();
+      var categoria = $('#categoria').val();
+      var cliente = $('#cliente').val();
+      var id = arrayElementosConsulta[itemSeleccionado].id
+      var comentario = $('#comentario').val();
+      fechaRevisar = (fechaSeleccionada.getFullYear() + '-' + fechaSeleccionada.getMonth()+1 + '-' + fechaSeleccionada.getDate()+ ' ' +fechaSeleccionada.getHours() + ':' + '00:00');
+      actualizarBD(
+        arrayElementosConsulta[itemSeleccionado].coordenada_x,
+        arrayElementosConsulta[itemSeleccionado].coordenada_y,
+        ancho,
+        largo,
+        date1,
+        date2,
+        time1,
+        time2,
+        categoria,
+        cliente,
+        id,
+        comentario,
+        fechaRevisar,
+        tipoActualizacion
+      )
+    }else{
+      $('#modal').modal('show');
+    }
+
+      });
+
+    $('#rechazar').click(function(){
+      context2.clearRect(0, 0, canvas2.width, canvas2.width);
+      $('#confirm1').modal('hide');
+    });
+    $('#cerrar').click(function(){
+      context2.clearRect(0, 0, canvas2.width, canvas2.width);
+      $('#confirm1').modal('hide');
+    });
+
+    $('#confirm1').on('hidden.bs.modal', function () {
+      context2.clearRect(0, 0, canvas2.width, canvas2.width);
+    });
+
+}
+
+// Valida fecha la inicial se mayor a la final
+function validaFecha (fecha1, fecha2) {
+  var f1 = new Date();
+  var f2 = new Date();
+  f1.setTime(Date.parse(fecha1));
+  f2.setTime(Date.parse(fecha2));
+  return (f1 < f2) ? false : true;
+}
+
+// //////////// FIN FUNCION ACTUALIZAR /////////
+
 /*
 mesNumtext convierte el numero del mes en texto
 */
@@ -421,7 +557,7 @@ function mesNumtext (num) {
 function activaBtnDeshacer () {
   if (cantDeshacer > 0) {
     btnDeshacer=true;
-    $("#deshacer").removeClass('btn-inactivo');
+    $('#deshacer').removeClass('btn-inactivo');
 }
 }
 
