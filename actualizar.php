@@ -130,7 +130,7 @@ isset($_POST['comentario']))  {
 			$prepared = null;
 			$resulti = true;
 		}
-	} else {
+	} else if($tipoActualizacion == 2) {
 
 		// Sentencia query para deshacer
 		$contraquery.= "UPDATE area_ocupada

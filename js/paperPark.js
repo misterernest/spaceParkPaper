@@ -10,6 +10,10 @@ var zoom = false // comienza con la vista en miniatura
 var arrayElementosConsulta = new Array() // array que va almacenar los elementos de la DB
 var proporcion = 1// proporción cuando el zoom esta activado
 
+var tipoActualizacion = 0
+var nuevoElemento = false
+var coordenaNuevoElemento = {x: 0, y: 0};
+
 // botones que inician en false para que primero elijan el elemento a mover
 var btnMover = false // boton mover
 var btnActualizarDatos = false // boton actualizar datos
@@ -151,6 +155,33 @@ function pintaElementos () {
   }
 }
 
+// function pintaElementosTime () {
+//   var fechaInicialElemento = new Date()
+//   var fechaFinalElemento = new Date()
+//   var fechaInicialArrayRango = new Date()
+//   fechaInicialArrayRango.setTime(Date.parse()
+//   var fechaFinalArrayRango = new Date()
+//   for (var i = 0; i < arrayElementosConsulta.length; i++) {
+//     fechaInicialElemento.setTime(Date.parse(arrayElementosConsulta[i].fecha_incial))
+//     fechaFinalElemento.setTime(Date.parse(arrayElementosConsulta[i].fecha_final))
+//     if (fechaInicialElemento <= fechaSeleccionada && fechaFinalElemento >= fechaSeleccionada) {
+//       var pathTemp = Path.Rectangle({
+//         point: [
+//           parseInt(arrayElementosConsulta[i].coordenada_x * proporcion ),
+//           parseInt(arrayElementosConsulta[i].coordenada_y * proporcion )
+//         ],
+//         size: [
+//           parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2),
+//           parseInt(arrayElementosConsulta[i].largo_y * proporcion * mts2)
+//         ],
+//         fillColor: 'black',
+//         strokeWidth: 0,
+//         name: '"' + i + '"',
+//         opacity: 0.5
+//       })
+//     }
+//   }
+// }
 // function de zoom para cambiar el tamaño del mapa
 $('#zoom').click(function () {
   zoomDo()
@@ -224,6 +255,11 @@ function onMouseDown (event) {
     if (btnMover) {
       itemSeleccionado = -1
       accionesBtn()
+    }else{
+      ubicaCoordenada(event.point)
+      if (zoom) {
+        $('#modal').modal('show')
+      }
     }
     if (!zoom) {
       zoomMapa(event)
@@ -252,7 +288,7 @@ function onMouseDown (event) {
 
 // ////////UBICA COORDENADA EN EL ZOOM////////////////////////////////
 
-function zoomMapa(e){
+function zoomMapa (e) {
   var posX1 = e.point.x/view.size.width;
   var posY1 = e.point.y/view.size.height;
   zoomDo();
@@ -379,73 +415,88 @@ function eliminarElementoBD (id) {
 // /////////////////////FUNCION ACTUALIZAR ////////////////////////////
 
 //ventanaActualiza('Desea actualizar los datos del elemento', 2)
-function ventanaActualiza (mensaje, tipoActualizacion) {
-  $('#confirm1').modal('hide');
-  $('#anchoX').val(arrayElementosConsulta[itemSeleccionado].ancho_x)
-  $('#largoY').val(arrayElementosConsulta[itemSeleccionado].largo_y);
-  $('#date').val(arrayElementosConsulta[itemSeleccionado].fecha_incial.slice(0, 10));
-  $('#date1').val(arrayElementosConsulta[itemSeleccionado].fecha_final.slice(0, 10));
-  $('#time').val(arrayElementosConsulta[itemSeleccionado].fecha_incial.slice(11));
-  $('#time1').val(arrayElementosConsulta[itemSeleccionado].fecha_final.slice(11));
-  $('#categoria').val(arrayElementosConsulta[itemSeleccionado].categoria);
-  $('#cliente').val(arrayElementosConsulta[itemSeleccionado].cliente);
-  $('#comentario').html(arrayElementosConsulta[itemSeleccionado].comentario);
-  $('#modal').modal('show')
-  $('#guardar').click(function () {
-    var anchoCuadro = $('#anchoX').val();
-    var largoCuadro = $('#largoY').val();
-    var mensaje = new Array();
-    $('#msj-alert').text('');
-    var valido = true;
-    if (anchoCuadro == '' || largoCuadro == '' || anchoCuadro <= 0 || largoCuadro <= 0) {
-      mensaje.push('Ancho y largo del area son obligatorios y deben ser positivo');
-      valido = false;
-    }
+// Cuando se actualiza por la ventada de actualizar en con 2
+// Cuando se actualiza por la opcion de mover es con dos
+function ventanaActualiza (mensaje) {
+  if (btnActualizarDatos) {
+    $('#confirm1').modal('hide');
+    $('#anchoX').val(arrayElementosConsulta[itemSeleccionado].ancho_x)
+    $('#largoY').val(arrayElementosConsulta[itemSeleccionado].largo_y);
+    $('#date').val(arrayElementosConsulta[itemSeleccionado].fecha_incial.slice(0, 10));
+    $('#date1').val(arrayElementosConsulta[itemSeleccionado].fecha_final.slice(0, 10));
+    $('#time').val(arrayElementosConsulta[itemSeleccionado].fecha_incial.slice(11));
+    $('#time1').val(arrayElementosConsulta[itemSeleccionado].fecha_final.slice(11));
+    $('#categoria').val(arrayElementosConsulta[itemSeleccionado].categoria);
+    $('#cliente').val(arrayElementosConsulta[itemSeleccionado].cliente);
+    $('#comentario').html(arrayElementosConsulta[itemSeleccionado].comentario);
+    $('#modal').modal('show')
+  }
+}
+$('#guardar').click(function () {
+  var anchoCuadro = $('#anchoX').val();
+  var largoCuadro = $('#largoY').val();
+  var mensaje = new Array();
+  $('#msj-alert').text('');
+  var valido = true;
+  if (anchoCuadro == '' || largoCuadro == '' || anchoCuadro <= 0 || largoCuadro <= 0) {
+    mensaje.push('Ancho y largo del area son obligatorios y deben ser positivo');
+    valido = false;
+  }
 
-    if ($('#date').val() == '' || $('#time').val() == '') {
-      mensaje.push('Fecha y hora inicial son obligatorios');
-      valido = false;
-    }
+  if ($('#date').val() == '' || $('#time').val() == '') {
+    mensaje.push('Fecha y hora inicial son obligatorios');
+    valido = false;
+  }
 
-    if ($('#date1').val() == '' || $('#time1').val() == '') {
-      mensaje.push('Fecha y hora final son obligatorios');
-      valido = false;
-    }
+  if ($('#date1').val() == '' || $('#time1').val() == '') {
+    mensaje.push('Fecha y hora final son obligatorios');
+    valido = false;
+  }
 
-    if (validaFecha($('#date').val(), $('#date1').val())) {
-      mensaje.push('Fecha inicial debe ser mayor de la fecha final');
-      valido = false;
-    }
+  if (validaFecha($('#date').val(), $('#date1').val())) {
+    mensaje.push('Fecha inicial debe ser mayor de la fecha final');
+    valido = false;
+  }
 
-    if ($('#cliente').val() == '') {
-      mensaje.push('El cliente es un campo obligatorio')
-      valido = false;
+  if ($('#cliente').val() == '') {
+    mensaje.push('El cliente es un campo obligatorio')
+    valido = false;
+  }
+  if (!valido) {
+    $('#myAlertLabel').text('ADVERTENCIA')
+    for (var i = 0; i < mensaje.length; i++) {
+      $('#msj-alert').append('<div class="col-lg-11 col-md-11">' + mensaje[i] + '</div>')
     }
-    if (!valido) {
-      $('#myAlertLabel').text('ADVERTENCIA')
-      for (var i = 0; i < mensaje.length; i++) {
-        $('#msj-alert').append('<div class="col-lg-11 col-md-11">' + mensaje[i] + '</div>')
-      }
-      $('#alert').modal('show');
-    }else if (valido) {
-      $('#modal').modal('hide');
-    }
+    $('#alert').modal('show');
+  }else if (valido) {
+    $('#modal').modal('hide');
+  }
 
-    if (valido) {
-      var ancho = $('#anchoX').val();
-      var largo = $('#largoY').val();
-      var date1 = $('#date').val();
-      var date2 = $('#date1').val();
-      var time1 = $('#time').val();
-      var time2 = $('#time1').val();
-      var categoria = $('#categoria').val();
-      var cliente = $('#cliente').val();
-      var id = arrayElementosConsulta[itemSeleccionado].id
-      var comentario = $('#comentario').val();
-      fechaRevisar = (fechaSeleccionada.getFullYear() + '-' + fechaSeleccionada.getMonth()+1 + '-' + fechaSeleccionada.getDate()+ ' ' +fechaSeleccionada.getHours() + ':' + '00:00');
+  if (valido) {
+    var x = arrayElementosConsulta[itemSeleccionado].coordenada_x
+    var y = arrayElementosConsulta[itemSeleccionado].coordenada_y
+    var ancho = $('#anchoX').val();
+    var largo = $('#largoY').val();
+    var date1 = $('#date').val();
+    var date2 = $('#date1').val();
+    var time1 = $('#time').val();
+    var time2 = $('#time1').val();
+    var categoria = $('#categoria').val();
+    var cliente = $('#cliente').val();
+    var id = arrayElementosConsulta[itemSeleccionado].id
+    var comentario = $('#comentario').val();
+    fechaRevisar = (fechaSeleccionada.getFullYear() + '-' + fechaSeleccionada.getMonth()+1 + '-' + fechaSeleccionada.getDate()+ ' ' +fechaSeleccionada.getHours() + ':' + '00:00');
+    if (nuevoElemento) {
+      // guardarBaseDatos (x, y, ancho,largo, date1,date2,time1,time2, categoria, cliente, angulo, comentario)
+      // voy por aqui
+      console.log(date1)
+      console.log(time1)
+      console.log(date2)
+      console.log(time2);
+    } else {
       actualizarBD(
-        arrayElementosConsulta[itemSeleccionado].coordenada_x,
-        arrayElementosConsulta[itemSeleccionado].coordenada_y,
+        x,
+        y,
         ancho,
         largo,
         date1,
@@ -459,26 +510,25 @@ function ventanaActualiza (mensaje, tipoActualizacion) {
         fechaRevisar,
         tipoActualizacion
       )
-    }else{
-      $('#modal').modal('show');
     }
+  } else {
+    $('#modal').modal('show')
+  }
 
-      });
+})
 
-    $('#rechazar').click(function(){
-      context2.clearRect(0, 0, canvas2.width, canvas2.width);
-      $('#confirm1').modal('hide');
-    });
-    $('#cerrar').click(function(){
-      context2.clearRect(0, 0, canvas2.width, canvas2.width);
-      $('#confirm1').modal('hide');
-    });
+$('#rechazar').click(function(){
+  context2.clearRect(0, 0, canvas2.width, canvas2.width);
+  $('#confirm1').modal('hide');
+});
+$('#cerrar').click(function(){
+  context2.clearRect(0, 0, canvas2.width, canvas2.width);
+  $('#confirm1').modal('hide');
+});
 
-    $('#confirm1').on('hidden.bs.modal', function () {
-      context2.clearRect(0, 0, canvas2.width, canvas2.width);
-    });
-
-}
+$('#confirm1').on('hidden.bs.modal', function () {
+  context2.clearRect(0, 0, canvas2.width, canvas2.width);
+});
 
 // Valida fecha la inicial se mayor a la final
 function validaFecha (fecha1, fecha2) {
@@ -491,6 +541,14 @@ function validaFecha (fecha1, fecha2) {
 
 // //////////// FIN FUNCION ACTUALIZAR /////////
 
+/* organiza el punto para que ubique la coordenada correspondiente con un cuadro */
+function ubicaCoordenada (puntoCoordenada) {
+  var pos1 = puntoCoordenada.x
+  var pos2 = puntoCoordenada.y
+  coordenaNuevoElemento.x = Math.floor(pos1 / mts2) * mts2
+  coordenaNuevoElemento.y = Math.floor(pos2 / mts2) * mts2
+}
+// fin organiza punto
 /*
 mesNumtext convierte el numero del mes en texto
 */
@@ -613,6 +671,109 @@ function consultarBaseDatos (date) {
     dataType:'json'
   })
 }
+
+// funcion AJAX para guardar en bd
+// AJAX Guardar Formulario
+
+function guardarBaseDatos (x, y, ancho,largo, date1,date2,time1,time2, categoria, cliente, angulo, comentario) {
+  // Convertir a objeto
+  var data = {};
+  data.x = x;
+  data.y = y;
+  data.ancho = ancho;
+  data.largo = largo;
+  data.date1 = date1;
+  data.date2 = date2;
+  data.time1 = time1;
+  data.time2 = time2;
+  data.categoria = categoria;
+  data.cliente = cliente;
+  data.angulo = angulo;
+  data.comentario = comentario;
+  var url = 'guardar.php';   //este es el PHP al que se llama por AJAX
+  $.ajax({
+    method: 'post',
+    url: url,
+    data: data,   //acá están todos los parámetros (valores a enviar) del POST
+    success: function (response) {
+      if (response == '1') {
+        $('#myAlertLabel').text('MENSAJE')
+        $('#modal').modal('hide')
+        $('#msj-alert').text('')
+        $('#msj-alert').append('<div class="col-lg-11 col-md-11">Espacio asignado correctamente </div>')
+        $('#alert').modal('show')
+        $('#enterado').click(function () {
+          location.reload()
+        })
+      }else{
+        $('#myAlertLabel').text('MENSAJE')
+        $('#modal').modal('hide')
+        $('#msj-alert').text('')
+        $('#msj-alert').append('<div class="col-lg-11 col-md-11">No se pudo asignar espacio error al guardar base de datos </div>')
+        $('#alert').modal('show')
+      }
+    },
+    error: function (jqXHR, textStatus, errorThrown) {
+      $('#myAlertLabel').text('ERROR')
+      $('#msj-alert').text('')
+      $('#msj-alert').append('<div class="col-lg-11 col-md-11">ERROR ' + textStatus + ' - ' + jqXHR + ' - ' + errorThrown + '</div>')
+      $('#alert').modal('toggle')
+    }
+  })
+}
+
+// actualizarBD(600,150, 9, '2018-03-20 02:53:00')
+function actualizarBD (x, y, ancho,largo, date1,date2,time1,time2, categoria, cliente ,id, comentario, date, typeUpdate) {
+// Convertir a objeto
+  var data = {}
+
+  data.date = date
+  data.id = id
+  data.x = x
+  data.y = y
+  data.ancho = ancho
+  data.largo = largo
+  data.date1 = date1
+  data.date2 = date2
+  data.time1 = time1
+  data.time2 = time2
+  data.categoria = categoria
+  data.comentario = comentario
+  data.cliente = cliente
+  data.typeUpdate = typeUpdate
+  var url = 'actualizar.php'   //este es el PHP al que se llama por AJAX
+
+  resultado = new Array()
+  $.ajax({
+    method: 'POST',
+    url: url,
+    data: data,   //acá están todos los parámetros (valores a enviar) del POST
+    success: function (response) {
+      //  resultado es un array que indica exitoso o no.
+      if (response == "1") {
+        $('#myAlertLabel').text("MOVIMIENTO")
+        $('#msj-alert').text('')
+        $('#msj-alert').append('<div class="col-lg-11 col-md-11">Espacio actualizado correctamente</div>')
+        $('#alert').modal('show')
+      } else {
+        $('#myAlertLabel').text("ERROR")
+        $('#msj-alert').text('')
+        $('#msj-alert').append('<div class="col-lg-11 col-md-11">No se pudo actualizar el espacio error al actualizar en base de datos</div>')
+        $('#alert').modal('show')
+      }
+      $("#enterado").click(function () {
+        location.reload()
+      })
+    },
+    error: function (jqXHR, textStatus, errorThrown) {
+      $('#myAlertLabel').text("ERROR")
+      $('#msj-alert').text('')
+      $('#msj-alert').append('<div class="col-lg-11 col-md-11">ERROR ' + textStatus + ' - ' + jqXHR + ' - ' + errorThrown + '</div>')
+      $('#alert').modal('show')
+    }
+  })
+}
+
 
 
 // /////////////////////////////////////////////////////////////////////
