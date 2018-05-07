@@ -8,11 +8,13 @@ var zoomHeight // tamaño del canvas sin zoom
 var btnDeshacer = false // boton que se activa si hay para deshacer
 var cantDeshacer = 0 // contador de elementos  deshacer inicializa
 var zoom = false // comienza con la vista en miniatura
-var arrayElementosConsulta = new Array()
+var arrayElementosConsulta = new Array() // array que va almacenar los elementos de la DB
+var proporcion = 1// proporción cuando el zoom esta activado
 
 // variables de pintar en el plano
 var pathPerimetro = new Path() // path del perimetro
 var CPathCuadricula = new CompoundPath() // cuadricula del mapa en un solo conjunto
+var seleccionado = -1
 
 /* Variables de fecha actual para hacer la consulta incial */
 var hoy = new Date() // la fecha actual para la consulta
@@ -79,7 +81,7 @@ perimetro() // llamada a la funcion que pinta el perimetro
 function perimetro () { // funcion que pinta el permietro y lo actualiza
   pathPerimetro.removeSegments()
   pathPerimetro.strokeColor = 'red'
-  var proporcion = (zoom) ? 1 : zoomProporcion // sin zoom y con zoom
+  proporcion = (zoom) ? 1 : zoomProporcion // sin zoom y con zoom
   pathPerimetro.moveTo(limite[0][0] * proporcion, limite[0][1] * proporcion)
   // pinta las lineas al rededor del mapa
   for (var j = 0; j < limite.length - 1; j++) {
@@ -105,16 +107,17 @@ function creaCuadricula () { // funcion que pinta la cuadricula
 // //////////////////////////// FUNCIONES PINTAR ELEMENTOS
 
 // funcion que pinta los elementos contenidos en arrayElementosConsulta
+var itemSeleccionado = -1 // variable que lleva el elemento seleccionado
 function pintaElementos () {
   project.activeLayer.removeChildren(2)
-  var proporcion = (zoom) ? 1 : zoomProporcion
+  proporcion = (zoom) ? 1 : zoomProporcion
   var fechaInicialArray = new Date();
   var fechaFinalArray = new Date();
   for (var i = 0; i < arrayElementosConsulta.length; i++) {
     fechaInicialArray.setTime(Date.parse(arrayElementosConsulta[i].fecha_incial))
     fechaFinalArray.setTime(Date.parse(arrayElementosConsulta[i].fecha_final))
     if (fechaInicialArray <= fechaSeleccionada && fechaFinalArray >= fechaSeleccionada) {
-      Path.Rectangle({
+      var pathTemp = Path.Rectangle({
         point: [
           parseInt(arrayElementosConsulta[i].coordenada_x * proporcion ),
           parseInt(arrayElementosConsulta[i].coordenada_y * proporcion )
@@ -125,8 +128,20 @@ function pintaElementos () {
         ],
         fillColor: colorCategoria[arrayElementosConsulta[i].categoria],
         strokeWidth: 0,
-        name: '"' + i + '"'
+        name: '"' + i + '"',
+        data: {
+          seleccionado: false
+        }
       })
+      if (i == itemSeleccionado) {
+        var posXActual = pathTemp.position.x
+        var posYActual = pathTemp.position.y
+        pathTemp.position.x = posXActual - 3
+        pathTemp.position.y = posYActual - 3
+        pathTemp.shadowOffset = new Point(3, 3)
+        pathTemp.shadowColor = 'black'
+        pathTemp.shadowBlur = 5
+      }
     }
   }
 }
@@ -170,10 +185,31 @@ function zoomDo () {
 
 // ////////EFECTO DEL MOUSE AL HACER CLIC SOBRE ELEMENTO// /////////////////////////////////
 
+var hitOptions = {
+  fill: true,
+  tolerance: 5
+}
+var elementoMovimiento // variable que se va a modificar
+var movePath = false
+function onMouseDown (event) {
+  var hitResult = project.hitTest(event.point, hitOptions)
+  if (!hitResult) { return }
 
+  movePath = hitResult.type === 'fill'
+  if (movePath) {
+    elementoMovimiento = hitResult.item // le asigna el item a un elemento que va a seleccionar
+    itemSeleccionado = elementoMovimiento.name.slice(1, -1)
 
+    // project.activeLayer.addChild(hitResult.item)
+  }
+}
+// function onMouseDrag(event) {
+//   if (elementoMovimiento) {
+//     elementoMovimiento.position += event.delta
+//     console.log(elementoMovimiento.position);
+//   }
+// }
 // ////////EFECTO DEL MOUSE AL PASAR SOBRE ELEMENTO// /////////////////////////////////
-
 function onMouseMove (event) {
   project.activeLayer.selected = false;
   pintaElementos()
@@ -184,16 +220,18 @@ function onMouseMove (event) {
   }
 }
 function popupElement (elementItem) {
-  posXActual = elementItem.position.x
-  posYActual = elementItem.position.y
-  elementItem.position.x = posXActual - 3
-  elementItem.position.y = posYActual - 3
-  //console.log(elementItem.y);
-  elementItem.shadowOffset = new Point(3, 3)
-  elementItem.shadowColor = 'black'
-  elementItem.shadowBlur = 12
+
+  if (itemSeleccionado != elementItem.name.slice(1, -1)) {
+    var posXActual = elementItem.position.x
+    var posYActual = elementItem.position.y
+    elementItem.position.x = posXActual - 3
+    elementItem.position.y = posYActual - 3
+    elementItem.shadowOffset = new Point(3, 3)
+    elementItem.shadowColor = 'black'
+    elementItem.shadowBlur = 5
+  }
   var i = elementItem.name.slice(1, -1);
-  var proporcion = (zoom) ? 1 : zoomProporcion
+  proporcion = (zoom) ? 1 : zoomProporcion
   $("#info-head").text('id: ' + arrayElementosConsulta[i].id + ' - ' + arrayElementosConsulta[i].categoria)
   $("#info-cliente").text('Cliente: ' + arrayElementosConsulta[i].cliente)
   var dateA = new Date();
