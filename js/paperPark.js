@@ -5,11 +5,16 @@ var height=1598 // tamaño del canvas
 var zoomProporcion // delta de cambio del canvas
 var zoomWidth // tamaño del canvas sin zoom
 var zoomHeight // tamaño del canvas sin zoom
-var btnDeshacer = false // boton que se activa si hay para deshacer
 var cantDeshacer = 0 // contador de elementos  deshacer inicializa
 var zoom = false // comienza con la vista en miniatura
 var arrayElementosConsulta = new Array() // array que va almacenar los elementos de la DB
 var proporcion = 1// proporción cuando el zoom esta activado
+
+// botones que inician en false para que primero elijan el elemento a mover
+var btnMover = false // boton mover
+var btnActualizarDatos = false // boton actualizar datos
+var btnEliminar = false // boton eliminar
+var btnDeshacer = false // boton que se activa si hay para deshacer
 
 // variables de pintar en el plano
 var pathPerimetro = new Path() // path del perimetro
@@ -183,6 +188,26 @@ function zoomDo () {
   }
 }
 
+// Funcion que activa y de descativa botones
+
+function accionesBtn () {
+  if (btnMover) {
+    btnMover = false // boton mover
+    btnActualizarDatos = false // boton actualizar datos
+    btnEliminar = false // boton eliminar
+    $("#mover").addClass('btn-inactivo')
+    $("#actualiza-fecha").addClass('btn-inactivo')
+    $("#eliminar").addClass('btn-inactivo')
+  }else {
+    btnMover = true // boton mover
+    btnActualizarDatos = true // boton actualizar datos
+    btnEliminar = true // boton eliminar
+    $("#mover").removeClass('btn-inactivo')
+    $("#actualiza-fecha").removeClass('btn-inactivo')
+    $("#eliminar").removeClass('btn-inactivo')
+  }
+}
+
 // ////////EFECTO DEL MOUSE AL HACER CLIC SOBRE ELEMENTO// /////////////////////////////////
 
 var hitOptions = {
@@ -190,16 +215,24 @@ var hitOptions = {
   tolerance: 5
 }
 var elementoMovimiento // variable que se va a modificar
-var movePath = false
-function onMouseDown (event) {
-  var hitResult = project.hitTest(event.point, hitOptions)
-  if (!hitResult) { return }
 
+function onMouseDown (event) {
+  var movePath = false
+  var hitResult = project.hitTest(event.point, hitOptions)
+  if (!hitResult) {
+    if (btnMover) {
+      itemSeleccionado = -1
+      accionesBtn()
+    }
+    return
+  }
   movePath = hitResult.type === 'fill'
   if (movePath) {
     elementoMovimiento = hitResult.item // le asigna el item a un elemento que va a seleccionar
     itemSeleccionado = elementoMovimiento.name.slice(1, -1)
-
+    if (!btnMover) {
+      accionesBtn()
+    }
     // project.activeLayer.addChild(hitResult.item)
   }
 }
@@ -258,6 +291,70 @@ function popupElement (elementItem) {
 
 
 // /////////// FIN DE ELEMENTO /////////////////////////////////////
+
+// /////////////// BTN ELIMINAR ////////////////////////////////
+$("#eliminar").click(function () {
+  if (btnEliminar) {
+    $('#myConfirm1Label').text("PREGUNTA")
+    $('#msj-confirm1').text('')
+    $('#msj-confirm1').append('<div class="col-lg-11 col-md-11">Desea eliminar este elemento</div>');
+    $('#confirm1').modal('show')
+
+    $("#aceptar").click(function () {
+      $('#confirm1').modal('hide')
+      eliminarElementoBD(arrayElementosConsulta[itemSeleccionado].id);
+    });
+
+    $("#rechazar").click(function(){
+      $('#confirm1').modal('hide');
+    });
+    $("#cerrar").click(function(){
+      $('#confirm1').modal('hide');
+    });
+    $("#confirm1").on('hidden.bs.modal')
+  }
+})
+
+//eliminarElementoBD("1");
+function eliminarElementoBD (id) {
+  // Convertir a objeto
+  var data = {}
+  data.id = id
+  var url = 'eliminarelementobd.php' // este es el PHP al que se llama por AJAX
+
+  resultado = new Array()
+  $.ajax({
+    method: 'POST',
+    url: url,
+    data: data, // acá están todos los parámetros (valores a enviar) del POST
+    success: function (response) {
+      // resultado es un array que indica exitoso o no.
+      if (response == '1') {
+        $('#myAlertLabel').text("ADVERTENCIA")
+        $('#msj-alert').text('')
+        $('#msj-alert').append('<div class="col-lg-11 col-md-11">Elemento eliminado correctamente</div>')
+        $('#alert').modal('show')
+        $("#enterado").click(function () {
+          location.reload()
+        })
+      } else {
+        $('#myAlertLabel').text("ADVERTENCIA")
+        $('#msj-alert').text('')
+        $('#msj-alert').append('<div class="col-lg-11 col-md-11">No se pudo eliminar elemento, error en base de datos</div>')
+        $('#alert').modal('show');
+      }
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      $('#myAlertLabel').text("ERROR")
+      $('#msj-alert').text('')
+      $('#msj-alert').append('<div class="col-lg-11 col-md-11">ERROR ' + textStatus + ' - ' + errorThrown + '</div>')
+      $('#alert').modal('show')
+    }
+  })
+}
+
+
+// /////////////////////FIN FUNCION ELIMINAR //////////////////////////
 /*
 mesNumtext convierte el numero del mes en texto
 */

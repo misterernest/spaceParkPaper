@@ -45,13 +45,13 @@
   <div class="btn-park btn-inactivo btn-rollback" id="deshacer">
     <img src="img/deshacer.png" alt="lupa-zoom-in">
   </div>
-  <div class="btn-park btn-mover1" id="mover">
+  <div class="btn-park btn-inactivo btn-mover1" id="mover">
     <img src="img/mover.png" alt="lupa-zoom-in">
   </div>
-  <div class="btn-park btn-actualizarFecha1" id="actualiza-fecha">
+  <div class="btn-park btn-inactivo btn-actualizarFecha1" id="actualiza-fecha">
     <img src="img/editar-fecha.png" alt="lupa-zoom-in">
   </div>
-  <div class="btn-park btn-eliminar1" id="eliminar">
+  <div class="btn-park btn-inactivo btn-eliminar1" id="eliminar">
     <img src="img/eliminar.png" alt="lupa-zoom-in">
   </div>
   <a href="calendar.php" target="_blank">
