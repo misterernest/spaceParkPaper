@@ -155,33 +155,42 @@ function pintaElementos () {
   }
 }
 
-// function pintaElementosTime () {
-//   var fechaInicialElemento = new Date()
-//   var fechaFinalElemento = new Date()
-//   var fechaInicialArrayRango = new Date()
-//   fechaInicialArrayRango.setTime(Date.parse()
-//   var fechaFinalArrayRango = new Date()
-//   for (var i = 0; i < arrayElementosConsulta.length; i++) {
-//     fechaInicialElemento.setTime(Date.parse(arrayElementosConsulta[i].fecha_incial))
-//     fechaFinalElemento.setTime(Date.parse(arrayElementosConsulta[i].fecha_final))
-//     if (fechaInicialElemento <= fechaSeleccionada && fechaFinalElemento >= fechaSeleccionada) {
-//       var pathTemp = Path.Rectangle({
-//         point: [
-//           parseInt(arrayElementosConsulta[i].coordenada_x * proporcion ),
-//           parseInt(arrayElementosConsulta[i].coordenada_y * proporcion )
-//         ],
-//         size: [
-//           parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2),
-//           parseInt(arrayElementosConsulta[i].largo_y * proporcion * mts2)
-//         ],
-//         fillColor: 'black',
-//         strokeWidth: 0,
-//         name: '"' + i + '"',
-//         opacity: 0.5
-//       })
-//     }
-//   }
-// }
+function pintaElementosTime (fecha1, fecha2) {
+  var fechaInicialElemento = new Date()
+  var fechaFinalElemento = new Date()
+  var fechaInicialArrayRango = new Date()
+  fechaInicialArrayRango.setTime(Date.parse(fecha1))
+  var fechaFinalArrayRango = new Date()
+  fechaFinalArrayRango.setTime(Date.parse(fecha2))
+  console.log(fechaInicialArrayRango);
+  console.log(fechaFinalArrayRango);
+  zoomDo()
+  proporcion = (zoom) ? 1 : zoomProporcion
+  for (var i = 0; i < arrayElementosConsulta.length; i++) {
+    fechaInicialElemento.setTime(Date.parse(arrayElementosConsulta[i].fecha_incial))
+    fechaFinalElemento.setTime(Date.parse(arrayElementosConsulta[i].fecha_final))
+    if (
+      (fechaInicialElemento < fechaFinalArrayRango && fechaFinalElemento > fechaInicialArrayRango)
+      || (fechaFinalElemento > fechaInicialArrayRango && fechaFinalElemento < fechaFinalArrayRango)
+      || (fechaInicialElemento > fechaInicialArrayRango && fechaInicialElemento < fechaFinalArrayRango)
+    ) {
+      var pathTemp = Path.Rectangle({
+        point: [
+          parseInt(arrayElementosConsulta[i].coordenada_x * proporcion ),
+          parseInt(arrayElementosConsulta[i].coordenada_y * proporcion )
+        ],
+        size: [
+          parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2),
+          parseInt(arrayElementosConsulta[i].largo_y * proporcion * mts2)
+        ],
+        fillColor: '#DEDEDE',
+        strokeWidth: 0,
+        name: '"' + i + '"',
+        opacity: 1
+      })
+    }
+  }
+}
 // function de zoom para cambiar el tamaño del mapa
 $('#zoom').click(function () {
   zoomDo()
@@ -238,7 +247,17 @@ function accionesBtn () {
     $("#eliminar").removeClass('btn-inactivo')
   }
 }
-
+// modal
+function modalPerimetro () {
+  $('#modal').modal('hide')
+  $('#myAlertLabel').text('ADVERTENCIA')
+  $('#msj-alert').text('')
+  $('#msj-alert').append('<div class="col-lg-11 col-md-11">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>')
+  $('#alert').modal('show')
+  $('#enterado').click(function(){
+    $('#alert').modal('hide');
+  })
+}
 // ////////EFECTO DEL MOUSE AL HACER CLIC SOBRE ELEMENTO// /////////////////////////////////
 
 var hitOptions = {
@@ -248,36 +267,42 @@ var hitOptions = {
 var elementoMovimiento // variable que se va a modificar
 
 function onMouseDown (event) {
-  var movePath = false
-
-  var hitResult = project.hitTest(event.point, hitOptions)
-  if (!hitResult) {
-    if (btnMover) {
-      itemSeleccionado = -1
-      accionesBtn()
-    }else{
-      ubicaCoordenada(event.point)
-      if (zoom) {
-        $('#modal').modal('show')
+  if (pathPerimetro.contains(event.point)) {
+    var movePath = false
+    var hitResult = project.hitTest(event.point, hitOptions)
+    if (!hitResult) {
+      if (btnMover) {
+        itemSeleccionado = -1
+        accionesBtn()
+      }else{
+        ubicaCoordenada(event.point)
+        if (zoom) {
+          coordenaNuevoElemento = event.point
+          nuevoElemento = true
+          console.log(coordenaNuevoElemento)
+          $('#modal').modal('show')
+        }
       }
+      if (!zoom) {
+        zoomMapa(event)
+      }
+      return
     }
-    if (!zoom) {
-      zoomMapa(event)
+    movePath = hitResult.type === 'fill'
+    if (movePath) {
+      elementoMovimiento = hitResult.item // le asigna el item a un elemento que va a seleccionar
+      itemSeleccionado = elementoMovimiento.name.slice(1, -1)
+      nuevoElemento = false
+      if (!zoom) {
+        zoomMapa(event)
+      }
+      if (!btnMover) {
+        accionesBtn()
+      }
+      // project.activeLayer.addChild(hitResult.item)
     }
-    return
-  }
-  movePath = hitResult.type === 'fill'
-  if (movePath) {
-    elementoMovimiento = hitResult.item // le asigna el item a un elemento que va a seleccionar
-    itemSeleccionado = elementoMovimiento.name.slice(1, -1)
-    if (!zoom) {
-      zoomMapa(event)
-    }
-    if (!btnMover) {
-      accionesBtn()
-    }
-
-    // project.activeLayer.addChild(hitResult.item)
+  } else {
+    modalPerimetro()
   }
 }
 // function onMouseDrag(event) {
@@ -292,10 +317,10 @@ function zoomMapa (e) {
   var posX1 = e.point.x/view.size.width;
   var posY1 = e.point.y/view.size.height;
   zoomDo();
-  var posX = ($("#canvas1").width() * posX1) - ($("#container-canvas").width() * 0.3) ;
-  var posY = ($("#canvas1").height() * posY1) - ($("#container-canvas").height() * 0.3);
-  $("#container-canvas").scrollLeft(posX);
-  $("#container-canvas").scrollTop(posY);
+  var posX = ($('#canvas1').width() * posX1) - ($('#container-canvas').width() * 0.3) ;
+  var posY = ($('#canvas1').height() * posY1) - ($('#container-canvas').height() * 0.3);
+  $('#container-canvas').scrollLeft(posX);
+  $('#container-canvas').scrollTop(posY);
 }
 
 // ////////EFECTO DEL MOUSE AL PASAR SOBRE ELEMENTO// /////////////////////////////////
@@ -305,7 +330,7 @@ function onMouseMove (event) {
   if (event.item && event.item.id != 3 && event.item.id != 1) {
     popupElement(event.item)
   } else {
-    $("#info-popup").attr("hidden", "hidden");
+    $('#info-popup').attr('hidden', 'hidden');
   }
 }
 function popupElement (elementItem) {
@@ -321,26 +346,26 @@ function popupElement (elementItem) {
   }
   var i = elementItem.name.slice(1, -1);
   proporcion = (zoom) ? 1 : zoomProporcion
-  $("#info-head").text('id: ' + arrayElementosConsulta[i].id + ' - ' + arrayElementosConsulta[i].categoria)
-  $("#info-cliente").text('Cliente: ' + arrayElementosConsulta[i].cliente)
+  $('#info-head').text('id: ' + arrayElementosConsulta[i].id + ' - ' + arrayElementosConsulta[i].categoria)
+  $('#info-cliente').text('Cliente: ' + arrayElementosConsulta[i].cliente)
   var dateA = new Date();
   var dateB = new Date();
   dateA.setTime(Date.parse(arrayElementosConsulta[i].fecha_incial));
   var mes1 = mesNumtext(dateA.getMonth()+1);
   dateB.setTime(Date.parse(arrayElementosConsulta[i].fecha_final));
   var mes2 = mesNumtext(dateB.getMonth()+1);
-  $("#info-fecha").text(
+  $('#info-fecha').text(
     dias[dateA.getDay()]
     + ' '
     + dateA.getDate() + ' de ' + mes1 + ' de ' + dateA.getFullYear() + ' - ' + dias[dateB.getDay()] + ' ' + dateB.getDate() + ' de ' + mes2 + ' de ' + dateB.getFullYear());
-  $("#info-size").text('W:' + arrayElementosConsulta[i].ancho_x + 'mts X H:' + arrayElementosConsulta[i].largo_y + ' mts');
-  $("#info-popup").removeAttr("hidden");
+  $('#info-size').text('W:' + arrayElementosConsulta[i].ancho_x + 'mts X H:' + arrayElementosConsulta[i].largo_y + ' mts');
+  $('#info-popup').removeAttr('hidden');
   if (proporcion == 1) {
-    $("#info-popup").removeClass("info-popup-zoom0");
-    $("#info-popup").addClass("info-popup-zoom");
+    $('#info-popup').removeClass('info-popup-zoom0');
+    $('#info-popup').addClass('info-popup-zoom');
   } else {
-    $("#info-popup").removeClass("info-popup-zoom");
-    $("#info-popup").addClass("info-popup-zoom0");
+    $('#info-popup').removeClass('info-popup-zoom');
+    $('#info-popup').addClass('info-popup-zoom0');
   }
 }
 
@@ -349,25 +374,25 @@ function popupElement (elementItem) {
 // /////////// FIN DE ELEMENTO /////////////////////////////////////
 
 // /////////////// BTN ELIMINAR ////////////////////////////////
-$("#eliminar").click(function () {
+$('#eliminar').click(function () {
   if (btnEliminar) {
-    $('#myConfirm1Label').text("PREGUNTA")
+    $('#myConfirm1Label').text('PREGUNTA')
     $('#msj-confirm1').text('')
     $('#msj-confirm1').append('<div class="col-lg-11 col-md-11">Desea eliminar este elemento</div>');
     $('#confirm1').modal('show')
 
-    $("#aceptar").click(function () {
+    $('#aceptar').click(function () {
       $('#confirm1').modal('hide')
       eliminarElementoBD(arrayElementosConsulta[itemSeleccionado].id);
     });
 
-    $("#rechazar").click(function(){
+    $('#rechazar').click(function(){
       $('#confirm1').modal('hide');
     });
-    $("#cerrar").click(function(){
+    $('#cerrar').click(function(){
       $('#confirm1').modal('hide');
     });
-    $("#confirm1").on('hidden.bs.modal')
+    $('#confirm1').on('hidden.bs.modal')
   }
 })
 
@@ -386,22 +411,22 @@ function eliminarElementoBD (id) {
     success: function (response) {
       // resultado es un array que indica exitoso o no.
       if (response == '1') {
-        $('#myAlertLabel').text("ADVERTENCIA")
+        $('#myAlertLabel').text('ADVERTENCIA')
         $('#msj-alert').text('')
         $('#msj-alert').append('<div class="col-lg-11 col-md-11">Elemento eliminado correctamente</div>')
         $('#alert').modal('show')
-        $("#enterado").click(function () {
+        $('#enterado').click(function () {
           location.reload()
         })
       } else {
-        $('#myAlertLabel').text("ADVERTENCIA")
+        $('#myAlertLabel').text('ADVERTENCIA')
         $('#msj-alert').text('')
         $('#msj-alert').append('<div class="col-lg-11 col-md-11">No se pudo eliminar elemento, error en base de datos</div>')
         $('#alert').modal('show');
       }
     },
     error: function(jqXHR, textStatus, errorThrown) {
-      $('#myAlertLabel').text("ERROR")
+      $('#myAlertLabel').text('ERROR')
       $('#msj-alert').text('')
       $('#msj-alert').append('<div class="col-lg-11 col-md-11">ERROR ' + textStatus + ' - ' + errorThrown + '</div>')
       $('#alert').modal('show')
@@ -429,6 +454,9 @@ function ventanaActualiza (mensaje) {
     $('#categoria').val(arrayElementosConsulta[itemSeleccionado].categoria);
     $('#cliente').val(arrayElementosConsulta[itemSeleccionado].cliente);
     $('#comentario').html(arrayElementosConsulta[itemSeleccionado].comentario);
+    var x = arrayElementosConsulta[itemSeleccionado].coordenada_x
+    var y = arrayElementosConsulta[itemSeleccionado].coordenada_y
+    var id = arrayElementosConsulta[itemSeleccionado].id
     $('#modal').modal('show')
   }
 }
@@ -473,8 +501,6 @@ $('#guardar').click(function () {
   }
 
   if (valido) {
-    var x = arrayElementosConsulta[itemSeleccionado].coordenada_x
-    var y = arrayElementosConsulta[itemSeleccionado].coordenada_y
     var ancho = $('#anchoX').val();
     var largo = $('#largoY').val();
     var date1 = $('#date').val();
@@ -483,16 +509,13 @@ $('#guardar').click(function () {
     var time2 = $('#time1').val();
     var categoria = $('#categoria').val();
     var cliente = $('#cliente').val();
-    var id = arrayElementosConsulta[itemSeleccionado].id
     var comentario = $('#comentario').val();
     fechaRevisar = (fechaSeleccionada.getFullYear() + '-' + fechaSeleccionada.getMonth()+1 + '-' + fechaSeleccionada.getDate()+ ' ' +fechaSeleccionada.getHours() + ':' + '00:00');
     if (nuevoElemento) {
       // guardarBaseDatos (x, y, ancho,largo, date1,date2,time1,time2, categoria, cliente, angulo, comentario)
-      // voy por aqui
-      console.log(date1)
-      console.log(time1)
-      console.log(date2)
-      console.log(time2);
+      var x = coordenaNuevoElemento.x
+      var y = coordenaNuevoElemento.y
+      pintaElementosTime(date1 + " " + time1, date2 + " " + time2)
     } else {
       actualizarBD(
         x,
