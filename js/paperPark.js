@@ -194,7 +194,7 @@ function pintaElementosTime (fecha1, fecha2) {
         strokeColor: '#DEDEDE',
         strokeWidth: 1,
         name: 'temp' + i + '',
-        opacity: 1,
+        opacity: 0,
         data: {
           fechaIni: dias[fechaInicialElemento.getDay()] + ' ' + fechaInicialElemento.getDate() + ' de ' + mesNumtext(fechaInicialElemento.getMonth() + 1) + ', del ' + fechaInicialElemento.getFullYear(),
           fechaFin: dias[fechaFinalElemento.getDay()] + ' ' + fechaFinalElemento.getDate() + ' de ' + mesNumtext(fechaFinalElemento.getMonth() + 1) + ', del ' + fechaFinalElemento.getFullYear()
@@ -538,7 +538,7 @@ $('#guardar').click(function () {
 
 
       if (revisaEspacio(x, y , ancho, largo, date1, time1, date2, time2)) { // revisa si interseca con otro elemento
-        //guardarBaseDatos(x, y, ancho,largo, date1,date2,time1,time2, categoria, cliente, angulo, comentario)
+        guardarBaseDatos(x, y, ancho, largo, date1, date2, time1, time2, categoria, cliente, angulo, comentario)
       }
     } else {
       actualizarBD(
@@ -603,17 +603,15 @@ function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2) {
     var nombre = arrayConsultaNombres[i]
     if (project.activeLayer.children[nombre].bounds.intersects(project.activeLayer.children[idNuevo].bounds)) {
       respuesta = false
-      mensaje[0] = '<div class="col-lg-11 col-md-11">Espacio ocupado desde el '+ project.activeLayer.children[nombre].data.fechaIni + ' al '+ project.activeLayer.children[nombre].data.fechaFin + '</div>'
+      mensaje.push('<div class="col-lg-11 col-md-11">Espacio ocupado desde el '+ project.activeLayer.children[nombre].data.fechaIni + ' al '+ project.activeLayer.children[nombre].data.fechaFin + '</div>')
       break;
     }
   }
-  console.log('peri');
-  console.log(project.activeLayer.children[idNuevo]);
-  if (pathPerimetro.bounds.contains(project.activeLayer.children[idNuevo].bounds)) {
-    mensaje[1] = '<div class="col-lg-11 col-md-11">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>'
+
+  if (!AreaPerimetro(x, y , ancho, largo)) {
+    mensaje.push('<div class="col-lg-11 col-md-11">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>')
     respuesta = false
   }
-  console.log(mensaje);
 
   if (!respuesta) {
     $('#myAlertLabel').text('ADVERTENCIA')
@@ -624,6 +622,25 @@ function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2) {
     mensaje = []
   }
   return respuesta
+}
+
+function AreaPerimetro (x, y , ancho, largo) {
+  var resultadoPerimetro = true
+  for (var i = x; i <= x + ancho * mts2; i = i + mts2) {
+    if (!pathPerimetro.contains(new Point(i, y)) || !pathPerimetro.contains(new Point(i + (largo * mts2), y))) {
+      resultadoPerimetro = false
+      break
+    }
+  }
+  if (resultadoPerimetro) {
+    for (i = y; i <= y + (largo * mts2); i = i + mts2) {
+      if (!pathPerimetro.contains(new Point(x, i)) || !pathPerimetro.contains(new Point(x, i + (ancho * mts2)))) {
+        resultadoPerimetro = false
+        break
+      }
+    }
+  }
+  return resultadoPerimetro
 }
 // //fin funcion para revisar si el espacio esta ocupando
 
