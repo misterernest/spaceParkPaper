@@ -136,6 +136,7 @@ function pintaElementos () {
     fechaInicialArray.setTime(Date.parse(arrayElementosConsulta[i].fecha_incial))
     fechaFinalArray.setTime(Date.parse(arrayElementosConsulta[i].fecha_final))
     if (fechaInicialArray <= fechaSeleccionada && fechaFinalArray >= fechaSeleccionada) {
+      fontSize = arrayElementosConsulta[i].ancho_x * proporcion * mts2 / 20
       if(parseInt(arrayElementosConsulta[i].ancho_x) < parseInt(arrayElementosConsulta[i].largo_y)) {
         rotacion = 90
         fontSize = arrayElementosConsulta[i].largo_y * proporcion * mts2 / 20
@@ -167,7 +168,7 @@ function pintaElementos () {
         fontFamily: 'Courier New',
         fontWeight: 'bold',
         name: 'temp' + i + '',
-         fontSize: fontSize
+        fontSize: fontSize
       })
 
       if (i == itemSeleccionado) {
