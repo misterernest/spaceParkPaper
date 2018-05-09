@@ -7,12 +7,15 @@ var zoomWidth // tamaño del canvas sin zoom
 var zoomHeight // tamaño del canvas sin zoom
 var cantDeshacer = 0 // contador de elementos  deshacer inicializa
 var zoom = false // comienza con la vista en miniatura
-var arrayElementosConsulta = new Array() // array que va almacenar los elementos de la DB
+var arrayElementosConsulta = [] // array que va almacenar los elementos de la DB
+var arrayElementosConsultaTemp = [] // array usado para comparar fechas y espacios
+var arrayConsultaNombres = [] // array usado para guardar las coincidencias de nombres
 var proporcion = 1// proporción cuando el zoom esta activado
-
+var cuadriculaID = 0
+var perimetroName; // nombre del perimetro
 var tipoActualizacion = 0
 var nuevoElemento = false
-var coordenaNuevoElemento = {x: 0, y: 0};
+var coordenadaNuevoElemento = {x: 0, y: 0};
 
 // botones que inician en false para que primero elijan el elemento a mover
 var btnMover = false // boton mover
@@ -21,8 +24,9 @@ var btnEliminar = false // boton eliminar
 var btnDeshacer = false // boton que se activa si hay para deshacer
 
 // variables de pintar en el plano
-var pathPerimetro = new Path() // path del perimetro
 var CPathCuadricula = new CompoundPath() // cuadricula del mapa en un solo conjunto
+var pathPerimetro = new Path() // path del perimetro
+var pathTempNuevo = new Path()
 var seleccionado = -1
 
 /* Variables de fecha actual para hacer la consulta incial */
@@ -97,6 +101,7 @@ function perimetro () { // funcion que pinta el permietro y lo actualiza
     pathPerimetro.lineTo(limite[j][0] * proporcion, limite[j][1] * proporcion)
   }
   pathPerimetro.closed = true
+  perimetroName = pathPerimetro.Name
 }
 
 creaCuadricula() // llamada inicial a la cuadricula del mapa
@@ -111,12 +116,14 @@ function creaCuadricula () { // funcion que pinta la cuadricula
   for (var i = mts2; i <= view.size.width; i = i + mts2) { // alto
     CPathCuadricula.addChild(new Path([i, 0], [i, view.size.height]))
   }
+  cuadriculaID = CPathCuadricula.id
 }
 
 // //////////////////////////// FUNCIONES PINTAR ELEMENTOS
 
 // funcion que pinta los elementos contenidos en arrayElementosConsulta
 var itemSeleccionado = -1 // variable que lleva el elemento seleccionado
+
 function pintaElementos () {
   project.activeLayer.removeChildren(2)
   proporcion = (zoom) ? 1 : zoomProporcion
@@ -126,7 +133,7 @@ function pintaElementos () {
     fechaInicialArray.setTime(Date.parse(arrayElementosConsulta[i].fecha_incial))
     fechaFinalArray.setTime(Date.parse(arrayElementosConsulta[i].fecha_final))
     if (fechaInicialArray <= fechaSeleccionada && fechaFinalArray >= fechaSeleccionada) {
-      var pathTemp = Path.Rectangle({
+      var pathTemp = new Path.Rectangle({
         point: [
           parseInt(arrayElementosConsulta[i].coordenada_x * proporcion ),
           parseInt(arrayElementosConsulta[i].coordenada_y * proporcion )
@@ -139,7 +146,8 @@ function pintaElementos () {
         strokeWidth: 0,
         name: '"' + i + '"',
         data: {
-          seleccionado: false
+          seleccionado: false,
+          id:arrayElementosConsulta[i]
         }
       })
       if (i == itemSeleccionado) {
@@ -155,42 +163,49 @@ function pintaElementos () {
   }
 }
 
+var idNuevo
 function pintaElementosTime (fecha1, fecha2) {
+  arrayConsultaNombres = []
   var fechaInicialElemento = new Date()
   var fechaFinalElemento = new Date()
   var fechaInicialArrayRango = new Date()
   fechaInicialArrayRango.setTime(Date.parse(fecha1))
   var fechaFinalArrayRango = new Date()
   fechaFinalArrayRango.setTime(Date.parse(fecha2))
-  console.log(fechaInicialArrayRango);
-  console.log(fechaFinalArrayRango);
-  zoomDo()
   proporcion = (zoom) ? 1 : zoomProporcion
-  for (var i = 0; i < arrayElementosConsulta.length; i++) {
-    fechaInicialElemento.setTime(Date.parse(arrayElementosConsulta[i].fecha_incial))
-    fechaFinalElemento.setTime(Date.parse(arrayElementosConsulta[i].fecha_final))
+  for (var i = 0; i < arrayElementosConsultaTemp.length; i++) {
+    fechaInicialElemento.setTime(Date.parse(arrayElementosConsultaTemp[i].fecha_incial))
+    fechaFinalElemento.setTime(Date.parse(arrayElementosConsultaTemp[i].fecha_final))
     if (
-      (fechaInicialElemento < fechaFinalArrayRango && fechaFinalElemento > fechaInicialArrayRango)
-      || (fechaFinalElemento > fechaInicialArrayRango && fechaFinalElemento < fechaFinalArrayRango)
-      || (fechaInicialElemento > fechaInicialArrayRango && fechaInicialElemento < fechaFinalArrayRango)
+      (fechaInicialElemento < fechaInicialArrayRango && fechaFinalElemento > fechaInicialArrayRango) ||
+      (fechaFinalElemento > fechaInicialArrayRango && fechaFinalElemento <= fechaFinalArrayRango) ||
+      (fechaInicialElemento >= fechaInicialArrayRango && fechaInicialElemento < fechaFinalArrayRango)
     ) {
-      var pathTemp = Path.Rectangle({
+      var pathTemp = new Path.Rectangle({
         point: [
-          parseInt(arrayElementosConsulta[i].coordenada_x * proporcion ),
-          parseInt(arrayElementosConsulta[i].coordenada_y * proporcion )
+          parseInt(arrayElementosConsultaTemp[i].coordenada_x * proporcion),
+          parseInt(arrayElementosConsultaTemp[i].coordenada_y * proporcion)
         ],
         size: [
-          parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2),
-          parseInt(arrayElementosConsulta[i].largo_y * proporcion * mts2)
+          parseInt(arrayElementosConsultaTemp[i].ancho_x * proporcion * mts2),
+          parseInt(arrayElementosConsultaTemp[i].largo_y * proporcion * mts2)
         ],
         fillColor: '#DEDEDE',
-        strokeWidth: 0,
-        name: '"' + i + '"',
-        opacity: 1
+        strokeColor: '#DEDEDE',
+        strokeWidth: 1,
+        name: 'temp' + i + '',
+        opacity: 1,
+        data: {
+          fechaIni: dias[fechaInicialElemento.getDay()] + ' ' + fechaInicialElemento.getDate() + ' de ' + mesNumtext(fechaInicialElemento.getMonth() + 1) + ', del ' + fechaInicialElemento.getFullYear(),
+          fechaFin: dias[fechaFinalElemento.getDay()] + ' ' + fechaFinalElemento.getDate() + ' de ' + mesNumtext(fechaFinalElemento.getMonth() + 1) + ', del ' + fechaFinalElemento.getFullYear()
+        }
       })
+      idNuevo = pathTemp.name
+      arrayConsultaNombres.push(pathTemp.name)
     }
   }
 }
+
 // function de zoom para cambiar el tamaño del mapa
 $('#zoom').click(function () {
   zoomDo()
@@ -254,10 +269,12 @@ function modalPerimetro () {
   $('#msj-alert').text('')
   $('#msj-alert').append('<div class="col-lg-11 col-md-11">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>')
   $('#alert').modal('show')
-  $('#enterado').click(function(){
-    $('#alert').modal('hide');
-  })
+
 }
+
+$('#enterado').click(function () {
+  $('#alert').modal('hide');
+})
 // ////////EFECTO DEL MOUSE AL HACER CLIC SOBRE ELEMENTO// /////////////////////////////////
 
 var hitOptions = {
@@ -275,11 +292,9 @@ function onMouseDown (event) {
         itemSeleccionado = -1
         accionesBtn()
       }else{
-        ubicaCoordenada(event.point)
         if (zoom) {
-          coordenaNuevoElemento = event.point
+          ubicaCoordenada(event.point)
           nuevoElemento = true
-          console.log(coordenaNuevoElemento)
           $('#modal').modal('show')
         }
       }
@@ -327,8 +342,8 @@ function zoomMapa (e) {
 function onMouseMove (event) {
   project.activeLayer.selected = false;
   pintaElementos()
-  if (event.item && event.item.id != 3 && event.item.id != 1) {
-    popupElement(event.item)
+  if (event.item && event.item != CPathCuadricula && event.item != pathPerimetro) {
+    popupElement(event.item) // muestra la ventana emergente con la información del evento
   } else {
     $('#info-popup').attr('hidden', 'hidden');
   }
@@ -371,7 +386,7 @@ function popupElement (elementItem) {
 
 
 
-// /////////// FIN DE ELEMENTO /////////////////////////////////////
+// /////////// FIN DE ELEMENTO EFECTO SOBRE EL ELEMENTO/////////////////////////////////////
 
 // /////////////// BTN ELIMINAR ////////////////////////////////
 $('#eliminar').click(function () {
@@ -387,10 +402,10 @@ $('#eliminar').click(function () {
     });
 
     $('#rechazar').click(function(){
-      $('#confirm1').modal('hide');
+      $('#confirm1').modal('hide')
     });
     $('#cerrar').click(function(){
-      $('#confirm1').modal('hide');
+      $('#confirm1').modal('hide')
     });
     $('#confirm1').on('hidden.bs.modal')
   }
@@ -442,7 +457,7 @@ function eliminarElementoBD (id) {
 //ventanaActualiza('Desea actualizar los datos del elemento', 2)
 // Cuando se actualiza por la ventada de actualizar en con 2
 // Cuando se actualiza por la opcion de mover es con dos
-function ventanaActualiza (mensaje) {
+function ventanaActualiza () {
   if (btnActualizarDatos) {
     $('#confirm1').modal('hide');
     $('#anchoX').val(arrayElementosConsulta[itemSeleccionado].ancho_x)
@@ -460,7 +475,10 @@ function ventanaActualiza (mensaje) {
     $('#modal').modal('show')
   }
 }
+
+// modal manejo de de guardar en el modal
 $('#guardar').click(function () {
+  ventanaActualiza() // decide que datos debe ingresar en el formulario o dejarlo vacio
   var anchoCuadro = $('#anchoX').val();
   var largoCuadro = $('#largoY').val();
   var mensaje = new Array();
@@ -509,13 +527,19 @@ $('#guardar').click(function () {
     var time2 = $('#time1').val();
     var categoria = $('#categoria').val();
     var cliente = $('#cliente').val();
+    var angulo = 0
     var comentario = $('#comentario').val();
-    fechaRevisar = (fechaSeleccionada.getFullYear() + '-' + fechaSeleccionada.getMonth()+1 + '-' + fechaSeleccionada.getDate()+ ' ' +fechaSeleccionada.getHours() + ':' + '00:00');
+    fechaRevisar = (fechaSeleccionada.getFullYear() + '-' + fechaSeleccionada.getMonth()+1 + '-' + fechaSeleccionada.getDate()+ ' ' +fechaSeleccionada.getHours() + ':' + '00:00')
     if (nuevoElemento) {
+
       // guardarBaseDatos (x, y, ancho,largo, date1,date2,time1,time2, categoria, cliente, angulo, comentario)
-      var x = coordenaNuevoElemento.x
-      var y = coordenaNuevoElemento.y
-      pintaElementosTime(date1 + " " + time1, date2 + " " + time2)
+      var x = coordenadaNuevoElemento.x
+      var y = coordenadaNuevoElemento.y
+
+
+      if (revisaEspacio(x, y , ancho, largo, date1, time1, date2, time2)) { // revisa si interseca con otro elemento
+        //guardarBaseDatos(x, y, ancho,largo, date1,date2,time1,time2, categoria, cliente, angulo, comentario)
+      }
     } else {
       actualizarBD(
         x,
@@ -541,16 +565,14 @@ $('#guardar').click(function () {
 })
 
 $('#rechazar').click(function(){
-  context2.clearRect(0, 0, canvas2.width, canvas2.width);
   $('#confirm1').modal('hide');
 });
 $('#cerrar').click(function(){
-  context2.clearRect(0, 0, canvas2.width, canvas2.width);
   $('#confirm1').modal('hide');
 });
 
 $('#confirm1').on('hidden.bs.modal', function () {
-  context2.clearRect(0, 0, canvas2.width, canvas2.width);
+  // revisar codigo
 });
 
 // Valida fecha la inicial se mayor a la final
@@ -562,14 +584,57 @@ function validaFecha (fecha1, fecha2) {
   return (f1 < f2) ? false : true;
 }
 
+// //inicio funcion para revisar si el espacio esta ocupando
+// aqui voy
+function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2) {
+  var mensaje = []
+  var respuesta = true
+  arrayElementosConsultaTemp = arrayElementosConsulta.slice()
+  arrayElementosConsultaTemp.push({
+    coordenada_x: x,
+    coordenada_y: y,
+    ancho_x: ancho,
+    largo_y: largo,
+    fecha_inicial: date1 + " " + time1,
+    fecha_final: date2 + " " + time2
+  })
+  pintaElementosTime(date1 + " " + time1, date2 + " " + time2) // dibuja todos los elementos en el tiempo para comprobar si se topa con el nuevo elemento
+  for (var i = 0; i < arrayConsultaNombres.length-1; i++) {
+    var nombre = arrayConsultaNombres[i]
+    if (project.activeLayer.children[nombre].bounds.intersects(project.activeLayer.children[idNuevo].bounds)) {
+      respuesta = false
+      mensaje[0] = '<div class="col-lg-11 col-md-11">Espacio ocupado desde el '+ project.activeLayer.children[nombre].data.fechaIni + ' al '+ project.activeLayer.children[nombre].data.fechaFin + '</div>'
+      break;
+    }
+  }
+  console.log('peri');
+  console.log(project.activeLayer.children[idNuevo]);
+  if (pathPerimetro.bounds.contains(project.activeLayer.children[idNuevo].bounds)) {
+    mensaje[1] = '<div class="col-lg-11 col-md-11">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>'
+    respuesta = false
+  }
+  console.log(mensaje);
+
+  if (!respuesta) {
+    $('#myAlertLabel').text('ADVERTENCIA')
+    for (var i = 0; i < mensaje.length; i++) {
+      $('#msj-alert').append('<div class="col-lg-11 col-md-11">' + mensaje[i] + '</div>')
+    }
+    $('#alert').modal('show');
+    mensaje = []
+  }
+  return respuesta
+}
+// //fin funcion para revisar si el espacio esta ocupando
+
 // //////////// FIN FUNCION ACTUALIZAR /////////
 
 /* organiza el punto para que ubique la coordenada correspondiente con un cuadro */
 function ubicaCoordenada (puntoCoordenada) {
   var pos1 = puntoCoordenada.x
   var pos2 = puntoCoordenada.y
-  coordenaNuevoElemento.x = Math.floor(pos1 / mts2) * mts2
-  coordenaNuevoElemento.y = Math.floor(pos2 / mts2) * mts2
+  coordenadaNuevoElemento.x = Math.floor(pos1 / mts2) * mts2
+  coordenadaNuevoElemento.y = Math.floor(pos2 / mts2) * mts2
 }
 // fin organiza punto
 /*
