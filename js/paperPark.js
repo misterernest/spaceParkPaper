@@ -15,7 +15,8 @@ var cuadriculaID = 0
 var perimetroName; // nombre del perimetro
 var tipoActualizacion = 0
 var nuevoElemento = false
-var coordenadaNuevoElemento = {x: 0, y: 0};
+var coordenadaNuevoElemento = {x: 0, y: 0}
+var formularioBorrar = true
 
 // botones que inician en false para que primero elijan el elemento a mover
 var btnMover = false // boton mover
@@ -130,9 +131,15 @@ function pintaElementos () {
   var fechaInicialArray = new Date();
   var fechaFinalArray = new Date();
   for (var i = 0; i < arrayElementosConsulta.length; i++) {
+    var rotacion = 0
+    var fontSize = 14
     fechaInicialArray.setTime(Date.parse(arrayElementosConsulta[i].fecha_incial))
     fechaFinalArray.setTime(Date.parse(arrayElementosConsulta[i].fecha_final))
     if (fechaInicialArray <= fechaSeleccionada && fechaFinalArray >= fechaSeleccionada) {
+      if(parseInt(arrayElementosConsulta[i].ancho_x) < parseInt(arrayElementosConsulta[i].largo_y)) {
+        rotacion = 90
+        fontSize = arrayElementosConsulta[i].largo_y * proporcion * mts2 / 20
+      }
       var pathTemp = new Path.Rectangle({
         point: [
           parseInt(arrayElementosConsulta[i].coordenada_x * proporcion ),
@@ -150,6 +157,19 @@ function pintaElementos () {
           id:arrayElementosConsulta[i]
         }
       })
+      var textTemp = new PointText({
+        point: [
+          parseInt(arrayElementosConsulta[i].coordenada_x * proporcion ),
+          parseInt(arrayElementosConsulta[i].coordenada_y * proporcion )
+        ],
+        content: arrayElementosConsulta[i].cliente,
+        fillColor: 'white',
+        fontFamily: 'Courier New',
+        fontWeight: 'bold',
+        name: 'temp' + i + '',
+         fontSize: fontSize
+      })
+
       if (i == itemSeleccionado) {
         var posXActual = pathTemp.position.x
         var posYActual = pathTemp.position.y
@@ -159,6 +179,8 @@ function pintaElementos () {
         pathTemp.shadowColor = 'black'
         pathTemp.shadowBlur = 5
       }
+      textTemp.rotate(rotacion, pathTemp.point);
+      textTemp.fitBounds(pathTemp.bounds)
     }
   }
 }
@@ -194,10 +216,11 @@ function pintaElementosTime (fecha1, fecha2) {
         strokeColor: '#DEDEDE',
         strokeWidth: 1,
         name: 'temp' + i + '',
-        opacity: 0,
+        opacity: 1,
         data: {
           fechaIni: dias[fechaInicialElemento.getDay()] + ' ' + fechaInicialElemento.getDate() + ' de ' + mesNumtext(fechaInicialElemento.getMonth() + 1) + ', del ' + fechaInicialElemento.getFullYear(),
-          fechaFin: dias[fechaFinalElemento.getDay()] + ' ' + fechaFinalElemento.getDate() + ' de ' + mesNumtext(fechaFinalElemento.getMonth() + 1) + ', del ' + fechaFinalElemento.getFullYear()
+          fechaFin: dias[fechaFinalElemento.getDay()] + ' ' + fechaFinalElemento.getDate() + ' de ' + mesNumtext(fechaFinalElemento.getMonth() + 1) + ', del ' + fechaFinalElemento.getFullYear(),
+          id: arrayElementosConsultaTemp[i].id
         }
       })
       idNuevo = pathTemp.name
@@ -295,6 +318,7 @@ function onMouseDown (event) {
         if (zoom) {
           ubicaCoordenada(event.point)
           nuevoElemento = true
+          vaciaFormulario()
           $('#modal').modal('show')
         }
       }
@@ -453,10 +477,15 @@ function eliminarElementoBD (id) {
 // /////////////////////FIN FUNCION ELIMINAR //////////////////////////
 
 // /////////////////////FUNCION ACTUALIZAR ////////////////////////////
-
-//ventanaActualiza('Desea actualizar los datos del elemento', 2)
+$('#actualiza-fecha').click(function () {
+  ventanaActualiza()
+})
+// ventanaActualiza('Desea actualizar los datos del elemento', 2)
 // Cuando se actualiza por la ventada de actualizar en con 2
-// Cuando se actualiza por la opcion de mover es con dos
+// Cuando se actualiza por la opcion de mover es con 1
+var id = -1
+var x
+var y // coordenada para manejar lo elementos sleccionados
 function ventanaActualiza () {
   if (btnActualizarDatos) {
     $('#confirm1').modal('hide');
@@ -469,16 +498,31 @@ function ventanaActualiza () {
     $('#categoria').val(arrayElementosConsulta[itemSeleccionado].categoria);
     $('#cliente').val(arrayElementosConsulta[itemSeleccionado].cliente);
     $('#comentario').html(arrayElementosConsulta[itemSeleccionado].comentario);
-    var x = arrayElementosConsulta[itemSeleccionado].coordenada_x
-    var y = arrayElementosConsulta[itemSeleccionado].coordenada_y
-    var id = arrayElementosConsulta[itemSeleccionado].id
+    x = arrayElementosConsulta[itemSeleccionado].coordenada_x
+    y = arrayElementosConsulta[itemSeleccionado].coordenada_y
+    id = arrayElementosConsulta[itemSeleccionado].id
+    tipoActualizacion = 2
     $('#modal').modal('show')
+  }
+}
+
+function vaciaFormulario () {
+  if (formularioBorrar) {
+    $('#confirm1').modal('hide');
+    $('#anchoX').val('')
+    $('#largoY').val('');
+    $('#date').val('');
+    $('#date1').val('');
+    $('#time').val('');
+    $('#time1').val('');
+    $('#categoria').val('');
+    $('#cliente').val('');
+    $('#comentario').html('');
   }
 }
 
 // modal manejo de de guardar en el modal
 $('#guardar').click(function () {
-  ventanaActualiza() // decide que datos debe ingresar en el formulario o dejarlo vacio
   var anchoCuadro = $('#anchoX').val();
   var largoCuadro = $('#largoY').val();
   var mensaje = new Array();
@@ -529,37 +573,41 @@ $('#guardar').click(function () {
     var cliente = $('#cliente').val();
     var angulo = 0
     var comentario = $('#comentario').val();
-    fechaRevisar = (fechaSeleccionada.getFullYear() + '-' + fechaSeleccionada.getMonth()+1 + '-' + fechaSeleccionada.getDate()+ ' ' +fechaSeleccionada.getHours() + ':' + '00:00')
     if (nuevoElemento) {
-
       // guardarBaseDatos (x, y, ancho,largo, date1,date2,time1,time2, categoria, cliente, angulo, comentario)
       var x = coordenadaNuevoElemento.x
       var y = coordenadaNuevoElemento.y
 
 
-      if (revisaEspacio(x, y , ancho, largo, date1, time1, date2, time2)) { // revisa si interseca con otro elemento
+      if (revisaEspacio(x, y , ancho, largo, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
         guardarBaseDatos(x, y, ancho, largo, date1, date2, time1, time2, categoria, cliente, angulo, comentario)
       }
     } else {
-      actualizarBD(
-        x,
-        y,
-        ancho,
-        largo,
-        date1,
-        date2,
-        time1,
-        time2,
-        categoria,
-        cliente,
-        id,
-        comentario,
-        fechaRevisar,
-        tipoActualizacion
-      )
+      if (revisaEspacio(x, y , ancho, largo, date1, time1, date2, time2, id)) {
+        x = arrayElementosConsulta[itemSeleccionado].coordenada_x
+        y = arrayElementosConsulta[itemSeleccionado].coordenada_y
+        var fechaRevisar = (fechaSeleccionada.getFullYear() + '-' + (fechaSeleccionada.getMonth() + 1) + '-' + fechaSeleccionada.getDate() + ' ' + fechaSeleccionada.getHours() + ':' + '00:00')
+        actualizarBD(
+          x,
+          y,
+          ancho,
+          largo,
+          date1,
+          date2,
+          time1,
+          time2,
+          categoria,
+          cliente,
+          id,
+          comentario,
+          fechaRevisar,
+          tipoActualizacion
+        )
+      }
     }
   } else {
     $('#modal').modal('show')
+    formularioBorrar = false
   }
 
 })
@@ -586,10 +634,18 @@ function validaFecha (fecha1, fecha2) {
 
 // //inicio funcion para revisar si el espacio esta ocupando
 // aqui voy
-function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2) {
+function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2, id) {
   var mensaje = []
   var respuesta = true
   arrayElementosConsultaTemp = arrayElementosConsulta.slice()
+  if (id >=0) {
+    for (var i = 0; i < arrayElementosConsultaTemp.length; i++) {
+      if (arrayElementosConsultaTemp[i].id == id) {
+        arrayElementosConsultaTemp.splice(i, 1)
+        break
+      }
+    }
+  }
   arrayElementosConsultaTemp.push({
     coordenada_x: x,
     coordenada_y: y,
@@ -604,10 +660,10 @@ function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2) {
     if (project.activeLayer.children[nombre].bounds.intersects(project.activeLayer.children[idNuevo].bounds)) {
       respuesta = false
       mensaje.push('<div class="col-lg-11 col-md-11">Espacio ocupado desde el '+ project.activeLayer.children[nombre].data.fechaIni + ' al '+ project.activeLayer.children[nombre].data.fechaFin + '</div>')
+      arrayConsultaNombres = []
       break;
     }
   }
-
   if (!AreaPerimetro(x, y , ancho, largo)) {
     mensaje.push('<div class="col-lg-11 col-md-11">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>')
     respuesta = false
@@ -620,6 +676,7 @@ function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2) {
     }
     $('#alert').modal('show');
     mensaje = []
+    formularioBorrar = false
   }
   return respuesta
 }
@@ -847,7 +904,6 @@ function actualizarBD (x, y, ancho,largo, date1,date2,time1,time2, categoria, cl
   data.cliente = cliente
   data.typeUpdate = typeUpdate
   var url = 'actualizar.php'   //este es el PHP al que se llama por AJAX
-
   resultado = new Array()
   $.ajax({
     method: 'POST',
@@ -925,9 +981,9 @@ eventClick:function(event)
    $('#anchoX_1').val(event.ancho);
    $('#cliente_1').val(event.title);
    $('#categoria_1').val(event.categorias);
-   $('#date_1').val(fechaStart.getFullYear() + '-' + fechaStart.getMonth()+1 + '-' + fechaStart.getDate()+1);
+   $('#date_1').val(fechaStart.getFullYear() + '-' + (fechaStart.getMonth()+1) + '-' + (fechaStart.getDate()+1));
    $('#time_1').val(event.startHora);
-   $('#date1_1').val(fechaEnd.getFullYear() + '-' + fechaEnd.getMonth()+1 + '-' + fechaEnd.getDate()+1);
+   $('#date1_1').val(fechaEnd.getFullYear() + '-' + (fechaEnd.getMonth()+1) + '-' + (fechaEnd.getDate()+1));
    $('#time1_1').val(event.endHora);
    $('#comentario_1').html(event.comentario);
 
