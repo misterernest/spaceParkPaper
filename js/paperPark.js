@@ -19,6 +19,7 @@ var coordenadaNuevoElemento = {x: 0, y: 0}
 var formularioBorrar = true
 
 // botones que inician en false para que primero elijan el elemento a mover
+var btnActivo = false
 var btnMover = false // boton mover
 var btnActualizarDatos = false // boton actualizar datos
 var btnEliminar = false // boton eliminar
@@ -106,6 +107,7 @@ function perimetro () { // funcion que pinta el permietro y lo actualiza
 }
 
 creaCuadricula() // llamada inicial a la cuadricula del mapa
+
 function creaCuadricula () { // funcion que pinta la cuadricula
   CPathCuadricula.removeChildren() // remueve la cuadricula para ser pintada nuevamente
   CPathCuadricula.strokeColor = 'black' // color de la cuadricula
@@ -124,18 +126,26 @@ function creaCuadricula () { // funcion que pinta la cuadricula
 
 // funcion que pinta los elementos contenidos en arrayElementosConsulta
 var itemSeleccionado = -1 // variable que lleva el elemento seleccionado
-
+function organizaFecha (cadenaFecha) {
+  var y4 = parseInt(cadenaFecha.slice(0, 4))
+  var m2 = parseInt(cadenaFecha.slice(5, 7)) - 1
+  var d2 = parseInt(cadenaFecha.slice(8, 10))
+  var respuesta = new Date(y4, m2, d2, 23, 59, 59, 0)
+  respuesta.setDate(respuesta.getDate() -1)
+  return respuesta
+}
 function pintaElementos () {
   project.activeLayer.removeChildren(2)
   proporcion = (zoom) ? 1 : zoomProporcion
   var fechaInicialArray = new Date();
   var fechaFinalArray = new Date();
+  fechaSeleccionada.setHours(23,59,59,0)
   for (var i = 0; i < arrayElementosConsulta.length; i++) {
     var rotacion = 0
     var fontSize = 14
-    fechaInicialArray.setTime(Date.parse(arrayElementosConsulta[i].fecha_incial))
-    fechaFinalArray.setTime(Date.parse(arrayElementosConsulta[i].fecha_final))
-    if (fechaInicialArray <= fechaSeleccionada && fechaFinalArray >= fechaSeleccionada) {
+    fechaInicialArray = organizaFecha(arrayElementosConsulta[i].fecha_incial)
+    fechaFinalArray = organizaFecha(arrayElementosConsulta[i].fecha_final)
+    if (fechaInicialArray <= fechaSeleccionada && fechaFinalArray > fechaSeleccionada) {
       fontSize = arrayElementosConsulta[i].ancho_x * proporcion * mts2 / 20
       if(parseInt(arrayElementosConsulta[i].ancho_x) < parseInt(arrayElementosConsulta[i].largo_y)) {
         rotacion = 90
@@ -167,8 +177,10 @@ function pintaElementos () {
           (parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2) - 10),
           (parseInt(arrayElementosConsulta[i].largo_y * proporcion * mts2) - 10)
         ],
-        visible: false
+        visible: false,
+        name: 'subpath' + i + '"',
       });
+      console.log(pathTemp.name);
       var textTemp = new PointText({
         point: [
           parseInt(arrayElementosConsulta[i].coordenada_x * proporcion ),
@@ -280,7 +292,8 @@ function zoomDo () {
 // Funcion que activa y de descativa botones
 
 function accionesBtn () {
-  if (btnMover) {
+  if (btnActivo) {
+    btnActivo = false // bandera para saber si esta seleccionado un elemento
     btnMover = false // boton mover
     btnActualizarDatos = false // boton actualizar datos
     btnEliminar = false // boton eliminar
@@ -288,10 +301,13 @@ function accionesBtn () {
     $("#actualiza-fecha").addClass('btn-inactivo')
     $("#eliminar").addClass('btn-inactivo')
   }else {
-    btnMover = true // boton mover
-    btnActualizarDatos = true // boton actualizar datos
-    btnEliminar = true // boton eliminar
+    // reinicia los botones
+    btnActivo = true
+    btnMover = false // boton mover
+    btnActualizarDatos = false // boton actualizar datos
+    btnEliminar = false // boton eliminar
     $("#mover").removeClass('btn-inactivo')
+    $("#mover").removeClass('btn-seleccion')
     $("#actualiza-fecha").removeClass('btn-inactivo')
     $("#eliminar").removeClass('btn-inactivo')
   }
@@ -307,7 +323,9 @@ function modalPerimetro () {
 }
 
 $('#enterado').click(function () {
-  $('#alert').modal('hide');
+  $('#alert').modal('hide')
+  accionesBtn()
+  accionesBtn()
 })
 // ////////EFECTO DEL MOUSE AL HACER CLIC SOBRE ELEMENTO// /////////////////////////////////
 
@@ -322,7 +340,7 @@ function onMouseDown (event) {
     var movePath = false
     var hitResult = project.hitTest(event.point, hitOptions)
     if (!hitResult) {
-      if (btnMover) {
+      if (btnActivo) {
         itemSeleccionado = -1
         accionesBtn()
       }else{
@@ -349,10 +367,14 @@ function onMouseDown (event) {
 
       nuevoElemento = false
       if (!zoom) {
+        $("#mover").removeClass('btn-seleccion')
         zoomMapa(event)
       }
-      if (!btnMover) {
+      if (!btnActivo) {
         accionesBtn()
+      }
+      if(btnMover){
+        $("#mover").removeClass('btn-seleccion')
       }
       // project.activeLayer.addChild(hitResult.item)
     }
@@ -360,11 +382,12 @@ function onMouseDown (event) {
     modalPerimetro()
   }
 }
-// function onMouseDrag(event) {
-//   if (elementoMovimiento) {
-//     elementoMovimiento.position += event.delta
-//   }
-// }
+function onMouseDrag(event) {
+  if (btnActivo && btnMover) {
+    $("#mover").addClass('btn-seleccion')
+    itemSeleccionado.position += event.delta
+  }
+}
 
 // ////////UBICA COORDENADA EN EL ZOOM////////////////////////////////
 
@@ -436,7 +459,7 @@ function popupElement (elementItem) {
 
 // /////////////// BTN ELIMINAR ////////////////////////////////
 $('#eliminar').click(function () {
-  if (btnEliminar) {
+  if (btnActivo) {
     $('#myConfirm1Label').text('PREGUNTA')
     $('#msj-confirm1').text('')
     $('#msj-confirm1').append('<div class="col-lg-11 col-md-11">Desea eliminar este elemento</div>');
@@ -449,9 +472,13 @@ $('#eliminar').click(function () {
 
     $('#rechazar').click(function(){
       $('#confirm1').modal('hide')
+      accionesBtn()
+      accionesBtn()
     });
     $('#cerrar').click(function(){
       $('#confirm1').modal('hide')
+      accionesBtn()
+      accionesBtn()
     });
     $('#confirm1').on('hidden.bs.modal')
   }
@@ -500,7 +527,23 @@ function eliminarElementoBD (id) {
 
 // /////////////////////FUNCION ACTUALIZAR ////////////////////////////
 $('#actualiza-fecha').click(function () {
-  ventanaActualiza()
+  if(btnActivo){
+    accionesBtn()
+    accionesBtn()
+    btnActualizarDatos = true
+    ventanaActualiza()
+
+  }
+})
+$('#mover').click(function () {
+  if(btnActivo){
+    accionesBtn()
+    accionesBtn()
+    $("#mover").addClass('btn-seleccion')
+    btnMover = true
+    ventanaActualiza()
+
+  }
 })
 // ventanaActualiza('Desea actualizar los datos del elemento', 2)
 // Cuando se actualiza por la ventada de actualizar en con 2
@@ -1005,7 +1048,7 @@ eventClick:function(event)
    $('#categoria_1').val(event.categorias);
    $('#date_1').val(fechaStart.getFullYear() + '-' + (fechaStart.getMonth()+1) + '-' + (fechaStart.getDate()+1));
    $('#time_1').val(event.startHora);
-   $('#date1_1').val(fechaEnd.getFullYear() + '-' + (fechaEnd.getMonth()+1) + '-' + (fechaEnd.getDate()+1));
+   $('#date1_1').val(fechaEnd.getFullYear() + '-' + (fechaEnd.getMonth()+1) + '-' + (fechaEnd.getDate()));
    $('#time1_1').val(event.endHora);
    $('#comentario_1').html(event.comentario);
 

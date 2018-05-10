@@ -147,7 +147,7 @@ isset($_POST['comentario']))  {
 		fecha_incial = '$date1 $time1',
 		cliente='$clientePost' ,
 		categoria='$categoriaPost',
-		comentario='$comentario'
+		comentario='$comentarioPost'
 		WHERE id=$id ";
 		$prepared = $pdo->prepare($queryu);
 		$resultu = $prepared->execute();
