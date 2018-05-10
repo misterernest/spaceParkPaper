@@ -158,6 +158,17 @@ function pintaElementos () {
           id:arrayElementosConsulta[i]
         }
       })
+      var pathSubTemp = new Path.Rectangle({
+        point: [
+          (parseInt(arrayElementosConsulta[i].coordenada_x  * proporcion ) + 5),
+          (parseInt(arrayElementosConsulta[i].coordenada_y * proporcion ) + 5)
+        ],
+        size: [
+          (parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2) - 10),
+          (parseInt(arrayElementosConsulta[i].largo_y * proporcion * mts2) - 10)
+        ],
+        visible: false
+      });
       var textTemp = new PointText({
         point: [
           parseInt(arrayElementosConsulta[i].coordenada_x * proporcion ),
@@ -167,10 +178,11 @@ function pintaElementos () {
         fillColor: 'white',
         fontFamily: 'Courier New',
         fontWeight: 'bold',
-        name: 'temp' + i + '',
+        name: 'text' + i + '"',
         fontSize: fontSize
       })
-
+      textTemp.rotate(rotacion, pathTemp.point);
+      textTemp.fitBounds(pathSubTemp.bounds)
       if (i == itemSeleccionado) {
         var posXActual = pathTemp.position.x
         var posYActual = pathTemp.position.y
@@ -180,8 +192,6 @@ function pintaElementos () {
         pathTemp.shadowColor = 'black'
         pathTemp.shadowBlur = 5
       }
-      textTemp.rotate(rotacion, pathTemp.point);
-      textTemp.fitBounds(pathTemp.bounds)
     }
   }
 }
@@ -216,7 +226,7 @@ function pintaElementosTime (fecha1, fecha2) {
         fillColor: '#DEDEDE',
         strokeColor: '#DEDEDE',
         strokeWidth: 1,
-        name: 'temp' + i + '',
+        name: 'temp' + i,
         opacity: 1,
         data: {
           fechaIni: dias[fechaInicialElemento.getDay()] + ' ' + fechaInicialElemento.getDate() + ' de ' + mesNumtext(fechaInicialElemento.getMonth() + 1) + ', del ' + fechaInicialElemento.getFullYear(),
@@ -331,7 +341,12 @@ function onMouseDown (event) {
     movePath = hitResult.type === 'fill'
     if (movePath) {
       elementoMovimiento = hitResult.item // le asigna el item a un elemento que va a seleccionar
-      itemSeleccionado = elementoMovimiento.name.slice(1, -1)
+      if (elementoMovimiento.className == 'Path') {
+        itemSeleccionado = elementoMovimiento.name.slice(1, -1)
+      } else if (elementoMovimiento.className == 'PointText') {
+        itemSeleccionado = elementoMovimiento.name.slice(4, -1)
+      }
+
       nuevoElemento = false
       if (!zoom) {
         zoomMapa(event)
@@ -374,17 +389,23 @@ function onMouseMove (event) {
   }
 }
 function popupElement (elementItem) {
+  var pos;
+  if (elementItem.className == 'Path') {
+    pos = elementItem.name.slice(1, -1)
+  } else if (elementItem.className == 'PointText') {
+    pos = elementItem.name.slice(4, -1)
+  }
 
   if (itemSeleccionado != elementItem.name.slice(1, -1)) {
-    var posXActual = elementItem.position.x
-    var posYActual = elementItem.position.y
-    elementItem.position.x = posXActual - 3
-    elementItem.position.y = posYActual - 3
-    elementItem.shadowOffset = new Point(3, 3)
-    elementItem.shadowColor = 'black'
-    elementItem.shadowBlur = 5
+    var posXActual = project.activeLayer.children['"' + pos + '"'].position.x
+    var posYActual = project.activeLayer.children['"' + pos + '"'].position.y
+    project.activeLayer.children['"' + pos + '"'].position.x = posXActual - 3
+    project.activeLayer.children['"' + pos + '"'].position.y = posYActual - 3
+    project.activeLayer.children['"' + pos + '"'].shadowOffset = new Point(3, 3)
+    project.activeLayer.children['"' + pos + '"'].shadowColor = 'black'
+    project.activeLayer.children['"' + pos + '"'].shadowBlur = 5
   }
-  var i = elementItem.name.slice(1, -1);
+  var i = pos;
   proporcion = (zoom) ? 1 : zoomProporcion
   $('#info-head').text('id: ' + arrayElementosConsulta[i].id + ' - ' + arrayElementosConsulta[i].categoria)
   $('#info-cliente').text('Cliente: ' + arrayElementosConsulta[i].cliente)
