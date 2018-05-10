@@ -54,12 +54,12 @@ view.size.set(zoomWidth, zoomHeight) // tamaño sin zoom del canvas en paper
 
 //variables de colores según categoria
 var colorCategoria = {
-  SAILING_YACHT:"rgb(255, 0, 0)",//RED
-  MOTOR_YACHT:"rgb(51, 204, 51)",//GREEN
-  CAT:"rgb(0, 0, 255)",//BLUE
-  PESCA:"rgb(255, 255, 0)",//YELLOW
-  ELEMENTO:"rgb(220, 0, 210)",//PURPLE
-  TENDER:"rgb(255,99,71)"//TOMATO
+  SAILING_YACHT:"rgb(180, 0, 0)", //RED
+  MOTOR_YACHT:"rgb(20, 170, 20)", //GREEN
+  CAT:"rgb(0, 0, 170)",//BLUE
+  PESCA:"rgb(190, 190, 0)",//YELLOW
+  ELEMENTO:"rgb(180, 0, 170)",//PURPLE
+  TENDER:"rgb(215,49,31)"//TOMATO
 };
 
 // array de coordenadas dentro de la bodega
