@@ -149,7 +149,7 @@ function pintaElementos () {
       fontSize = arrayElementosConsulta[i].ancho_x * proporcion * mts2 / 20
       if(parseInt(arrayElementosConsulta[i].ancho_x) < parseInt(arrayElementosConsulta[i].largo_y)) {
         rotacion = 90
-        fontSize = arrayElementosConsulta[i].largo_y * proporcion * mts2 / 20
+        fontSize = arrayElementosConsulta[i].largo_y * proporcion * mts2 / 5
       }
       var pathTemp = new Path.Rectangle({
         point: [
@@ -170,17 +170,16 @@ function pintaElementos () {
       })
       var pathSubTemp = new Path.Rectangle({
         point: [
-          (parseInt(arrayElementosConsulta[i].coordenada_x  * proporcion ) + 5),
-          (parseInt(arrayElementosConsulta[i].coordenada_y * proporcion ) + 5)
+          (parseInt(arrayElementosConsulta[i].coordenada_x  * proporcion ) + 10 * proporcion),
+          (parseInt(arrayElementosConsulta[i].coordenada_y * proporcion ) + 10 * proporcion)
         ],
         size: [
-          (parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2) - 10),
-          (parseInt(arrayElementosConsulta[i].largo_y * proporcion * mts2) - 10)
+          (parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2) - 20 * proporcion),
+          (parseInt(arrayElementosConsulta[i].largo_y * proporcion * mts2) - 20 * proporcion)
         ],
         visible: false,
-        name: 'subpath' + i + '"',
+        name: 'subpath' + i,
       });
-      console.log(pathTemp.name);
       var textTemp = new PointText({
         point: [
           parseInt(arrayElementosConsulta[i].coordenada_x * proporcion ),
@@ -358,12 +357,22 @@ function onMouseDown (event) {
     }
     movePath = hitResult.type === 'fill'
     if (movePath) {
+
       elementoMovimiento = hitResult.item // le asigna el item a un elemento que va a seleccionar
       if (elementoMovimiento.className == 'Path') {
+        if (itemSeleccionado != elementoMovimiento.name.slice(1, -1)) {
+          btnMover = false
+          $("#mover").removeClass('btn-seleccion')
+        }
         itemSeleccionado = elementoMovimiento.name.slice(1, -1)
       } else if (elementoMovimiento.className == 'PointText') {
+        if (itemSeleccionado != elementoMovimiento.name.slice(4, -1)) {
+          btnMover = false
+          $("#mover").removeClass('btn-seleccion')
+        }
         itemSeleccionado = elementoMovimiento.name.slice(4, -1)
       }
+
 
       nuevoElemento = false
       if (!zoom) {
@@ -373,7 +382,7 @@ function onMouseDown (event) {
       if (!btnActivo) {
         accionesBtn()
       }
-      if(btnMover){
+      if (btnMover) {
         $("#mover").removeClass('btn-seleccion')
       }
       // project.activeLayer.addChild(hitResult.item)
@@ -383,9 +392,17 @@ function onMouseDown (event) {
   }
 }
 function onMouseDrag(event) {
+  console.log(btnActivo);
   if (btnActivo && btnMover) {
+    if (elementoMovimiento.className == 'Path') {
+      itemSeleccionado = elementoMovimiento.name.slice(1, -1)
+    } else if (elementoMovimiento.className == 'PointText') {
+      itemSeleccionado = itemSeleccionado = elementoMovimiento.name.slice(4, -1)
+    }
     $("#mover").addClass('btn-seleccion')
-    itemSeleccionado.position += event.delta
+    project.activeLayer.children['subpath' + itemSeleccionado].position += event.delta
+    project.activeLayer.children['text' + itemSeleccionado + '"'].position += event.delta
+    project.activeLayer.children['"' + itemSeleccionado + '"'].position += event.delta
   }
 }
 
