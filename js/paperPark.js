@@ -125,7 +125,7 @@ function creaCuadricula () { // funcion que pinta la cuadricula
 // //////////////////////////// FUNCIONES PINTAR ELEMENTOS
 
 // funcion que pinta los elementos contenidos en arrayElementosConsulta
-var itemSeleccionado = -1 // variable que lleva el elemento seleccionado
+
 function organizaFecha (cadenaFecha) {
   var y4 = parseInt(cadenaFecha.slice(0, 4))
   var m2 = parseInt(cadenaFecha.slice(5, 7)) - 1
@@ -194,11 +194,9 @@ function pintaElementos () {
       })
       textTemp.rotate(rotacion, pathTemp.point);
       textTemp.fitBounds(pathSubTemp.bounds)
-      if (i == itemSeleccionado) {
+      if (i == nameSeleccionado) {
         var posXActual = pathTemp.position.x
         var posYActual = pathTemp.position.y
-        pathTemp.position.x = posXActual - 3
-        pathTemp.position.y = posYActual - 3
         pathTemp.shadowOffset = new Point(3, 3)
         pathTemp.shadowColor = 'black'
         pathTemp.shadowBlur = 5
@@ -328,82 +326,40 @@ $('#enterado').click(function () {
 })
 // ////////EFECTO DEL MOUSE AL HACER CLIC SOBRE ELEMENTO// /////////////////////////////////
 
-var hitOptions = {
-  fill: true,
-  tolerance: 5
-}
+var nameSeleccionado
 var elementoMovimiento // variable que se va a modificar
-
 function onMouseDown (event) {
   if (pathPerimetro.contains(event.point)) {
-    var movePath = false
-    var hitResult = project.hitTest(event.point, hitOptions)
-    if (!hitResult) {
-      if (btnActivo) {
-        itemSeleccionado = -1
-        accionesBtn()
-      }else{
-        if (zoom) {
-          ubicaCoordenada(event.point)
-          nuevoElemento = true
-          vaciaFormulario()
-          $('#modal').modal('show')
-        }
-      }
-      if (!zoom) {
+    if (event.item && event.item.className == "Path") {
+      nameSeleccionado = event.item.name.slice(1, -1)
+    } else if (event.item && event.item.className == "PointText") {
+      nameSeleccionado = event.item.name.slice(4, -1)
+    } else {
+      nameSeleccionado = -1
+      if (zoom) {
+        ubicaCoordenada(event.point)
+        nuevoElemento = true
+        vaciaFormulario()
+        $('#modal').modal('show')
+      } else if (!zoom) {
         zoomMapa(event)
       }
-      return
     }
-    movePath = hitResult.type === 'fill'
-    if (movePath) {
-
-      elementoMovimiento = hitResult.item // le asigna el item a un elemento que va a seleccionar
-      if (elementoMovimiento.className == 'Path') {
-        if (itemSeleccionado != elementoMovimiento.name.slice(1, -1)) {
-          btnMover = false
-          $("#mover").removeClass('btn-seleccion')
-        }
-        itemSeleccionado = elementoMovimiento.name.slice(1, -1)
-      } else if (elementoMovimiento.className == 'PointText') {
-        if (itemSeleccionado != elementoMovimiento.name.slice(4, -1)) {
-          btnMover = false
-          $("#mover").removeClass('btn-seleccion')
-        }
-        itemSeleccionado = elementoMovimiento.name.slice(4, -1)
-      }
-
-
-      nuevoElemento = false
-      if (!zoom) {
-        $("#mover").removeClass('btn-seleccion')
-        zoomMapa(event)
-      }
+    if (nameSeleccionado >= 0) {
       if (!btnActivo) {
         accionesBtn()
       }
-      if (btnMover) {
-        $("#mover").removeClass('btn-seleccion')
-      }
-      // project.activeLayer.addChild(hitResult.item)
+    } else {
+      accionesBtn()
     }
   } else {
+    nameSeleccionado = -1
     modalPerimetro()
   }
 }
+
 function onMouseDrag(event) {
-  console.log(btnActivo);
-  if (btnActivo && btnMover) {
-    if (elementoMovimiento.className == 'Path') {
-      itemSeleccionado = elementoMovimiento.name.slice(1, -1)
-    } else if (elementoMovimiento.className == 'PointText') {
-      itemSeleccionado = itemSeleccionado = elementoMovimiento.name.slice(4, -1)
-    }
-    $("#mover").addClass('btn-seleccion')
-    project.activeLayer.children['subpath' + itemSeleccionado].position += event.delta
-    project.activeLayer.children['text' + itemSeleccionado + '"'].position += event.delta
-    project.activeLayer.children['"' + itemSeleccionado + '"'].position += event.delta
-  }
+  event.item += event.delta
 }
 
 // ////////UBICA COORDENADA EN EL ZOOM////////////////////////////////
@@ -419,15 +375,36 @@ function zoomMapa (e) {
 }
 
 // ////////EFECTO DEL MOUSE AL PASAR SOBRE ELEMENTO// /////////////////////////////////
+var nameEventMove
+function limpiaSombra () {
+  project.activeLayer.style.shadowOffset = new Point(0, 0)
+  project.activeLayer.style.shadowColor = 'black'
+  project.activeLayer.style.shadowBlur = 0
+}
 function onMouseMove (event) {
-  project.activeLayer.selected = false;
-  pintaElementos()
+  limpiaSombra()
   if (event.item && event.item != CPathCuadricula && event.item != pathPerimetro) {
+    if (event.item.className == "Path") {
+      nameEventMove = event.item.name.slice(1, -1)
+    }else if (event.item.className == "PointText") {
+      nameEventMove = event.item.name.slice(4, -1)
+    }
     popupElement(event.item) // muestra la ventana emergente con la información del evento
   } else {
+    limpiaSombra()
+
     $('#info-popup').attr('hidden', 'hidden');
   }
+
+  if (nameSeleccionado >= 0) {
+    project.activeLayer.children['"' + nameSeleccionado + '"'].shadowOffset = new Point(3, 3)
+    project.activeLayer.children['"' + nameSeleccionado + '"'].shadowColor = 'black'
+    project.activeLayer.children['"' + nameSeleccionado + '"'].shadowBlur = 5
+  }
 }
+
+// funcion encargada de mostrar la informacion en el lado derecho de la pantalla
+// del elemento con el cual se esta haciendo el hover
 function popupElement (elementItem) {
   var pos;
   if (elementItem.className == 'Path') {
@@ -436,11 +413,7 @@ function popupElement (elementItem) {
     pos = elementItem.name.slice(4, -1)
   }
 
-  if (itemSeleccionado != elementItem.name.slice(1, -1)) {
-    var posXActual = project.activeLayer.children['"' + pos + '"'].position.x
-    var posYActual = project.activeLayer.children['"' + pos + '"'].position.y
-    project.activeLayer.children['"' + pos + '"'].position.x = posXActual - 3
-    project.activeLayer.children['"' + pos + '"'].position.y = posYActual - 3
+  if (nameSeleccionado != elementItem.name.slice(1, -1)) {
     project.activeLayer.children['"' + pos + '"'].shadowOffset = new Point(3, 3)
     project.activeLayer.children['"' + pos + '"'].shadowColor = 'black'
     project.activeLayer.children['"' + pos + '"'].shadowBlur = 5
@@ -484,7 +457,7 @@ $('#eliminar').click(function () {
 
     $('#aceptar').click(function () {
       $('#confirm1').modal('hide')
-      eliminarElementoBD(arrayElementosConsulta[itemSeleccionado].id);
+      eliminarElementoBD(arrayElementosConsulta[nameSeleccionado].id);
     });
 
     $('#rechazar').click(function(){
@@ -571,18 +544,18 @@ var y // coordenada para manejar lo elementos sleccionados
 function ventanaActualiza () {
   if (btnActualizarDatos) {
     $('#confirm1').modal('hide');
-    $('#anchoX').val(arrayElementosConsulta[itemSeleccionado].ancho_x)
-    $('#largoY').val(arrayElementosConsulta[itemSeleccionado].largo_y);
-    $('#date').val(arrayElementosConsulta[itemSeleccionado].fecha_incial.slice(0, 10));
-    $('#date1').val(arrayElementosConsulta[itemSeleccionado].fecha_final.slice(0, 10));
-    $('#time').val(arrayElementosConsulta[itemSeleccionado].fecha_incial.slice(11));
-    $('#time1').val(arrayElementosConsulta[itemSeleccionado].fecha_final.slice(11));
-    $('#categoria').val(arrayElementosConsulta[itemSeleccionado].categoria);
-    $('#cliente').val(arrayElementosConsulta[itemSeleccionado].cliente);
-    $('#comentario').html(arrayElementosConsulta[itemSeleccionado].comentario);
-    x = arrayElementosConsulta[itemSeleccionado].coordenada_x
-    y = arrayElementosConsulta[itemSeleccionado].coordenada_y
-    id = arrayElementosConsulta[itemSeleccionado].id
+    $('#anchoX').val(arrayElementosConsulta[nameSeleccionado].ancho_x)
+    $('#largoY').val(arrayElementosConsulta[nameSeleccionado].largo_y);
+    $('#date').val(arrayElementosConsulta[nameSeleccionado].fecha_incial.slice(0, 10));
+    $('#date1').val(arrayElementosConsulta[nameSeleccionado].fecha_final.slice(0, 10));
+    $('#time').val(arrayElementosConsulta[nameSeleccionado].fecha_incial.slice(11));
+    $('#time1').val(arrayElementosConsulta[nameSeleccionado].fecha_final.slice(11));
+    $('#categoria').val(arrayElementosConsulta[nameSeleccionado].categoria);
+    $('#cliente').val(arrayElementosConsulta[nameSeleccionado].cliente);
+    $('#comentario').html(arrayElementosConsulta[nameSeleccionado].comentario);
+    x = arrayElementosConsulta[nameSeleccionado].coordenada_x
+    y = arrayElementosConsulta[nameSeleccionado].coordenada_y
+    id = arrayElementosConsulta[nameSeleccionado].id
     tipoActualizacion = 2
     $('#modal').modal('show')
   }
@@ -666,8 +639,8 @@ $('#guardar').click(function () {
       }
     } else {
       if (revisaEspacio(x, y , ancho, largo, date1, time1, date2, time2, id)) {
-        x = arrayElementosConsulta[itemSeleccionado].coordenada_x
-        y = arrayElementosConsulta[itemSeleccionado].coordenada_y
+        x = arrayElementosConsulta[nameSeleccionado].coordenada_x
+        y = arrayElementosConsulta[nameSeleccionado].coordenada_y
         var fechaRevisar = (fechaSeleccionada.getFullYear() + '-' + (fechaSeleccionada.getMonth() + 1) + '-' + fechaSeleccionada.getDate() + ' ' + fechaSeleccionada.getHours() + ':' + '00:00')
         actualizarBD(
           x,
@@ -759,6 +732,7 @@ function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2, id) {
     $('#alert').modal('show');
     mensaje = []
     formularioBorrar = false
+    pintaElementos()
   }
   return respuesta
 }
