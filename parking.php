@@ -43,16 +43,19 @@
     <img src="img/lupa-menos.png" alt="lupa-zoom-out" id="zoom-out" hidden="hidden">
   </div>
   <div class="btn-park btn-inactivo btn-rollback" id="deshacer">
-    <img src="img/deshacer.png" alt="lupa-zoom-in">
+    <img src="img/deshacer.png" alt="deshacer cambio">
   </div>
   <div class="btn-park btn-inactivo btn-mover1" id="mover">
-    <img src="img/mover.png" alt="lupa-zoom-in">
+    <img src="img/mover.png" alt="mover">
+  </div>
+  <div class="btn-park btn-inactivo btn-rotar" id="rotar">
+    <img src="img/rotar.png" alt="rotar">
   </div>
   <div class="btn-park btn-inactivo btn-actualizarFecha1" id="actualiza-fecha">
-    <img src="img/editar-fecha.png" alt="lupa-zoom-in">
+    <img src="img/editar-fecha.png" alt="actualizar fecha">
   </div>
   <div class="btn-park btn-inactivo btn-eliminar1" id="eliminar">
-    <img src="img/eliminar.png" alt="lupa-zoom-in">
+    <img src="img/eliminar.png" alt="eliminar elemento">
   </div>
   <a href="calendar.php" target="_blank">
     <div class="btn-park btn-gant" id="gant">

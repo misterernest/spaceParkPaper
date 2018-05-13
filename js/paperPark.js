@@ -24,6 +24,7 @@ var btnMover = false // boton mover
 var btnActualizarDatos = false // boton actualizar datos
 var btnEliminar = false // boton eliminar
 var btnDeshacer = false // boton que se activa si hay para deshacer
+var btnRotar = false // boton que se activa si hay para deshacer
 
 // variables de pintar en el plano
 var CPathCuadricula = new CompoundPath() // cuadricula del mapa en un solo conjunto
@@ -298,7 +299,9 @@ function accionesBtn () {
     btnActivo = false // bandera para saber si esta seleccionado un elemento
     btnMover = false // boton mover
     btnActualizarDatos = false // boton actualizar datos
-    btnEliminar = false // boton eliminar
+    btnRotar = false // boton rotar
+    btnEliminar = true // boton eliminar
+    $("#rotar").addClass('btn-inactivo')
     $("#mover").addClass('btn-inactivo')
     $("#actualiza-fecha").addClass('btn-inactivo')
     $("#eliminar").addClass('btn-inactivo')
@@ -308,6 +311,9 @@ function accionesBtn () {
     btnMover = false // boton mover
     btnActualizarDatos = false // boton actualizar datos
     btnEliminar = false // boton eliminar
+    btnRotar = false // boton rotar
+    $("#rotar").removeClass('btn-inactivo')
+    $("#rotar").removeClass('btn-seleccion')
     $("#mover").removeClass('btn-inactivo')
     $("#mover").removeClass('btn-seleccion')
     $("#actualiza-fecha").removeClass('btn-inactivo')
@@ -337,18 +343,24 @@ var elementoMovimiento // variable que se va a modificar
 function onMouseDown (event) {
   if (pathPerimetro.contains(event.point)) {
     if (event.item && event.item.className == "Path") {
-      if (event.item.name.slice(1, -1) == nameSeleccionado && btnMover) {
-        dragPermiso = true
-        diferenciaEventRectangle(event)
+      if (event.item.name.slice(1, -1) == nameSeleccionado) {
+        if (btnMover) {
+          dragPermiso = true
+          diferenciaEventRectangle(event)
+        }else if(btnRotar)
       }else{
         accionesBtn()
         accionesBtn()
       }
       nameSeleccionado = event.item.name.slice(1, -1)
     } else if (event.item && event.item.className == "PointText") {
-      if (event.item.name.slice(4, -1) == nameSeleccionado && btnMover) {
-        dragPermiso = true
-        diferenciaEventRectangle(event)
+      if (event.item.name.slice(4, -1) == nameSeleccionado) {
+        if ( btnMover) {
+          dragPermiso = true
+          diferenciaEventRectangle(event)
+        }else if (btnRotar) {
+
+        }
       }else{
         accionesBtn()
         accionesBtn()
@@ -433,12 +445,33 @@ function mueveElemento (x, y , ancho, largo, fechaSeleccionada, fechaFinalInArra
   cliente = arrayElementosConsulta[nameSeleccionado].cliente
   comentario = arrayElementosConsulta[nameSeleccionado].comentario
   if (revisaEspacio(puntoTemp.x, puntoTemp.y , ancho, largo, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
-    actualizarBD (puntoTemp.x, puntoTemp.y, ancho, largo, date1, date2, time1, time2,categoria, cliente ,id, comentario, dateTimeSeleccionada, 1)
+      if (btnActivo && btnMover) {
+        $('#myConfirm1Label').text('PREGUNTA')
+        $('#msj-confirm1').text('')
+        $('#msj-confirm1').append('<div class="col-lg-11 col-md-11">Desea mover elemento a la nueva ubicación</div>');
+        $('#confirm1').modal('show')
+
+        $('#aceptar').click(function () {
+          $('#confirm1').modal('hide')
+          actualizarBD (puntoTemp.x, puntoTemp.y, ancho, largo, date1, date2, time1, time2,categoria, cliente ,id, comentario, dateTimeSeleccionada, 1)
+        });
+
+        $('#rechazar').click(function(){
+          $('#confirm1').modal('hide')
+          location.reload()
+        });
+        $('#cerrar').click(function(){
+          $('#confirm1').modal('hide')
+          location.reload()
+        });
+        $('#confirm1').on('hidden.bs.modal', function () {
+          location.reload()
+        })
+      }
   }
+}
 
-
-
-
+function rotar(event){
 
 }
 // ////////UBICA COORDENADA EN EL ZOOM////////////////////////////////
