@@ -43,6 +43,9 @@ var dias = new Array ('Domingo','Lunes','Martes','Miércoles','Jueves','Viernes'
 var mesText = mesNumtext(mm)
 var mesActual = mesText
 var fechaSeleccionada = hoy
+fechaSeleccionada.setMinutes(0)
+fechaSeleccionada.setSeconds(0)
+fechaSeleccionada.setMilliseconds(0)
 consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
 
 zoomProporcion = $('#container-canvas').width() / width // determina el factor de cambio tamaños
@@ -129,20 +132,22 @@ function creaCuadricula () { // funcion que pinta la cuadricula
 function organizaFecha (cadenaFecha) {
   var y4 = parseInt(cadenaFecha.slice(0, 4))
   var m2 = parseInt(cadenaFecha.slice(5, 7)) - 1
-  var d2 = parseInt(cadenaFecha.slice(8, 10))
-  var respuesta = new Date(y4, m2, d2, 23, 59, 59, 0)
+  var d2 = parseInt(cadenaFecha.slice(8, 10)) + 1
+  //var respuesta = new Date(y4, m2, d2, 23, 59, 59, 0)
+  var respuesta = new Date(y4, m2, d2)
   respuesta.setDate(respuesta.getDate() -1)
   return respuesta
 }
 function pintaElementos () {
   project.activeLayer.removeChildren(2)
   proporcion = (zoom) ? 1 : zoomProporcion
-  var fechaInicialArray = new Date();
-  var fechaFinalArray = new Date();
-  fechaSeleccionada.setHours(23,59,59,0)
+  var fechaInicialArray = new Date()
+  var fechaFinalArray = new Date()
   for (var i = 0; i < arrayElementosConsulta.length; i++) {
     var rotacion = 0
     var fontSize = 14
+    arrayElementosConsulta[i].coordenada_x = parseInt(arrayElementosConsulta[i].coordenada_x)
+    arrayElementosConsulta[i].coordenada_y = parseInt(arrayElementosConsulta[i].coordenada_y)
     fechaInicialArray = organizaFecha(arrayElementosConsulta[i].fecha_incial)
     fechaFinalArray = organizaFecha(arrayElementosConsulta[i].fecha_final)
     if (fechaInicialArray <= fechaSeleccionada && fechaFinalArray > fechaSeleccionada) {
@@ -178,7 +183,7 @@ function pintaElementos () {
           (parseInt(arrayElementosConsulta[i].largo_y * proporcion * mts2) - 20 * proporcion)
         ],
         visible: false,
-        name: 'subpath' + i,
+        name: 'subpath' + i + '"',
       });
       var textTemp = new PointText({
         point: [
@@ -326,18 +331,35 @@ $('#enterado').click(function () {
 })
 // ////////EFECTO DEL MOUSE AL HACER CLIC SOBRE ELEMENTO// /////////////////////////////////
 
-var nameSeleccionado
+var nameSeleccionado // varibale que almacena el valor del index de arrayElementosConsulta que esta seleccionado
+var dragPermiso = false // permiso para hacer drag sobre los elementos por defecto es false
 var elementoMovimiento // variable que se va a modificar
 function onMouseDown (event) {
   if (pathPerimetro.contains(event.point)) {
     if (event.item && event.item.className == "Path") {
+      if (event.item.name.slice(1, -1) == nameSeleccionado && btnMover) {
+        dragPermiso = true
+        diferenciaEventRectangle(event)
+      }else{
+        accionesBtn()
+        accionesBtn()
+      }
       nameSeleccionado = event.item.name.slice(1, -1)
     } else if (event.item && event.item.className == "PointText") {
+      if (event.item.name.slice(4, -1) == nameSeleccionado && btnMover) {
+        dragPermiso = true
+        diferenciaEventRectangle(event)
+      }else{
+        accionesBtn()
+        accionesBtn()
+      }
       nameSeleccionado = event.item.name.slice(4, -1)
     } else {
       nameSeleccionado = -1
       if (zoom) {
-        ubicaCoordenada(event.point)
+        var puntoUbicado = ubicaCoordenada(event.point)
+        coordenadaNuevoElemento.x = puntoUbicado.x
+        coordenadaNuevoElemento.y = puntoUbicado.y
         nuevoElemento = true
         vaciaFormulario()
         $('#modal').modal('show')
@@ -357,11 +379,68 @@ function onMouseDown (event) {
     modalPerimetro()
   }
 }
-
+var diferenciaPosX = 0
+var diferenciaPosy = 0
+function diferenciaEventRectangle (event) {
+  proporcion = (zoom) ? 1 : zoomProporcion // sin zoom y con zoom
+  diferenciaPosX = event.point.x - arrayElementosConsulta[nameSeleccionado].coordenada_x
+  diferenciaPosy = event.point.y - arrayElementosConsulta[nameSeleccionado].coordenada_y
+}
+var posElementoDrag = new Point()
 function onMouseDrag(event) {
-  event.item += event.delta
+  proporcion = (zoom) ? 1 : zoomProporcion // sin zoom y con zoom
+  if (btnActivo && btnMover && dragPermiso) {
+    project.activeLayer.children['"' + nameSeleccionado + '"'].position += event.delta
+    project.activeLayer.children['subpath' + nameSeleccionado + '"'].position += event.delta
+    project.activeLayer.children['text' + nameSeleccionado + '"'].position += event.delta
+  }
 }
 
+function onMouseUp (event) {
+  proporcion = (zoom) ? 1 : zoomProporcion // sin zoom y con zoom
+  if (!zoom && btnMover && dragPermiso) {
+    dragPermiso = false
+    arrayElementosConsulta[nameSeleccionado].coordenada_x = (event.point.x * proporcion) - diferenciaPosX
+    arrayElementosConsulta[nameSeleccionado].coordenada_y = (event.point.y * proporcion) - diferenciaPosy
+    zoomMapa(event)
+  } else if (zoom && btnMover && dragPermiso) {
+    dragPermiso = false
+    arrayElementosConsulta[nameSeleccionado].coordenada_x = event.point.x - diferenciaPosX
+    arrayElementosConsulta[nameSeleccionado].coordenada_y = event.point.y - diferenciaPosy
+    x = arrayElementosConsulta[nameSeleccionado].coordenada_x
+    y = arrayElementosConsulta[nameSeleccionado].coordenada_y
+    ancho = arrayElementosConsulta[nameSeleccionado].ancho_x
+    largo = arrayElementosConsulta[nameSeleccionado].largo_y
+    fechaFinalInArray = arrayElementosConsulta[nameSeleccionado].fecha_final
+    id = arrayElementosConsulta[nameSeleccionado].id
+    mueveElemento(x, y , ancho, largo, fechaSeleccionada, fechaFinalInArray, id)
+  }
+}
+function mueveElemento (x, y , ancho, largo, fechaSeleccionada, fechaFinalInArray, id) {
+  var puntoTemp = new Point({
+    x: x,
+    y: y
+  })
+  puntoTemp = ubicaCoordenada(puntoTemp)
+  dateTime1 = new Date(Date.parse(arrayElementosConsulta[nameSeleccionado].fecha_incial))
+  dateTime2 = new Date(Date.parse(fechaFinalInArray))
+  var date1 = dateTime1.getFullYear() + "-" + (dateTime1.getMonth() + 1) + "-" + dateTime1.getDate()
+  var time1 = dateTime1.getHours() + ":" + "00:00"
+  var date2 = dateTime2.getFullYear() + "-" + (dateTime2.getMonth() + 1) + "-" + dateTime2.getDate()
+  var time2 = dateTime2.getHours() + ":" + dateTime2.getMinutes() + ":00"
+  dateTimeSeleccionada = fechaSeleccionada.getFullYear() + "-" + (fechaSeleccionada.getMonth() + 1) + "-" + fechaSeleccionada.getDate() + " " + fechaSeleccionada.getHours() + ":" + "00:00"
+  categoria = arrayElementosConsulta[nameSeleccionado].categoria
+  cliente = arrayElementosConsulta[nameSeleccionado].cliente
+  comentario = arrayElementosConsulta[nameSeleccionado].comentario
+  if (revisaEspacio(puntoTemp.x, puntoTemp.y , ancho, largo, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
+    actualizarBD (puntoTemp.x, puntoTemp.y, ancho, largo, date1, date2, time1, time2,categoria, cliente ,id, comentario, dateTimeSeleccionada, 1)
+  }
+
+
+
+
+
+}
 // ////////UBICA COORDENADA EN EL ZOOM////////////////////////////////
 
 function zoomMapa (e) {
@@ -527,12 +606,21 @@ $('#actualiza-fecha').click(function () {
 })
 $('#mover').click(function () {
   if(btnActivo){
-    accionesBtn()
-    accionesBtn()
-    $("#mover").addClass('btn-seleccion')
-    btnMover = true
+    if (!btnMover) {
+      accionesBtn()
+      accionesBtn()
+      btnMover = true
+      if(zoom){
+        zoomDo()
+      }
+      $("#mover").addClass('btn-seleccion')
+    } else {
+      accionesBtn()
+      accionesBtn()
+      btnMover = false
+      $("#mover").removeClass('btn-seleccion')
+    }
     ventanaActualiza()
-
   }
 })
 // ventanaActualiza('Desea actualizar los datos del elemento', 2)
@@ -577,10 +665,10 @@ function vaciaFormulario () {
 }
 
 // modal manejo de de guardar en el modal
+var mensaje = new Array();
 $('#guardar').click(function () {
   var anchoCuadro = $('#anchoX').val();
   var largoCuadro = $('#largoY').val();
-  var mensaje = new Array();
   $('#msj-alert').text('');
   var valido = true;
   if (anchoCuadro == '' || largoCuadro == '' || anchoCuadro <= 0 || largoCuadro <= 0) {
@@ -632,8 +720,7 @@ $('#guardar').click(function () {
       // guardarBaseDatos (x, y, ancho,largo, date1,date2,time1,time2, categoria, cliente, angulo, comentario)
       var x = coordenadaNuevoElemento.x
       var y = coordenadaNuevoElemento.y
-
-
+      mensaje = [].slice()
       if (revisaEspacio(x, y , ancho, largo, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
         guardarBaseDatos(x, y, ancho, largo, date1, date2, time1, time2, categoria, cliente, angulo, comentario)
       }
@@ -690,12 +777,11 @@ function validaFecha (fecha1, fecha2) {
 // //inicio funcion para revisar si el espacio esta ocupando
 // aqui voy
 function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2, id) {
-  var mensaje = []
   var respuesta = true
   arrayElementosConsultaTemp = arrayElementosConsulta.slice()
   if (id >=0) {
     for (var i = 0; i < arrayElementosConsultaTemp.length; i++) {
-      if (arrayElementosConsultaTemp[i].id == id) {
+      if (arrayElementosConsultaTemp[i].id == id) { //quita el item para que no se compare con el mismo
         arrayElementosConsultaTemp.splice(i, 1)
         break
       }
@@ -710,6 +796,8 @@ function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2, id) {
     fecha_final: date2 + " " + time2
   })
   pintaElementosTime(date1 + " " + time1, date2 + " " + time2) // dibuja todos los elementos en el tiempo para comprobar si se topa con el nuevo elemento
+  mensaje = [].slice()
+
   for (var i = 0; i < arrayConsultaNombres.length-1; i++) {
     var nombre = arrayConsultaNombres[i]
     if (project.activeLayer.children[nombre].bounds.intersects(project.activeLayer.children[idNuevo].bounds)) {
@@ -720,34 +808,43 @@ function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2, id) {
     }
   }
   if (!AreaPerimetro(x, y , ancho, largo)) {
-    mensaje.push('<div class="col-lg-11 col-md-11">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>')
+    mensaje.push('<div class="col-lg-11 col-md-11" id="borrarMsj">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>')
     respuesta = false
   }
 
   if (!respuesta) {
     $('#myAlertLabel').text('ADVERTENCIA')
     for (var i = 0; i < mensaje.length; i++) {
-      $('#msj-alert').append('<div class="col-lg-11 col-md-11">' + mensaje[i] + '</div>')
+      $('#msj-alert').append('<div class="col-lg-11 col-md-11" id="borrarMsj" >' + mensaje[i] + '</div>')
     }
     $('#alert').modal('show');
-    mensaje = []
+
     formularioBorrar = false
     pintaElementos()
   }
   return respuesta
 }
 
+$('#enterado').click(function () {
+  if(btnDeshacer) {
+    $('#alert').modal('hide')
+    $('#msj-alert').empty()
+  }
+})
+
 function AreaPerimetro (x, y , ancho, largo) {
   var resultadoPerimetro = true
-  for (var i = x; i <= x + ancho * mts2; i = i + mts2) {
-    if (!pathPerimetro.contains(new Point(i, y)) || !pathPerimetro.contains(new Point(i + (largo * mts2), y))) {
+  proporcion = (zoom) ? 1 : zoomProporcion // sin zoom y con zoom
+  for (var i = 0; i <= ancho; i++) {
+    if (!pathPerimetro.contains(new Point(x + (i * mts2), y)) || !pathPerimetro.contains(new Point(x + (i * mts2), y +  (largo * mts2)))) {
       resultadoPerimetro = false
       break
     }
   }
   if (resultadoPerimetro) {
-    for (i = y; i <= y + (largo * mts2); i = i + mts2) {
-      if (!pathPerimetro.contains(new Point(x, i)) || !pathPerimetro.contains(new Point(x, i + (ancho * mts2)))) {
+    for (var i = 0; i <= largo; i++) {
+
+      if (!pathPerimetro.contains(new Point(x, y + (i * mts2))) || !pathPerimetro.contains(new Point(x  + (ancho * mts2) , y + (i * mts2)))) {
         resultadoPerimetro = false
         break
       }
@@ -763,8 +860,9 @@ function AreaPerimetro (x, y , ancho, largo) {
 function ubicaCoordenada (puntoCoordenada) {
   var pos1 = puntoCoordenada.x
   var pos2 = puntoCoordenada.y
-  coordenadaNuevoElemento.x = Math.floor(pos1 / mts2) * mts2
-  coordenadaNuevoElemento.y = Math.floor(pos2 / mts2) * mts2
+  puntoCoordenada.x = Math.floor(pos1 / mts2) * mts2
+  puntoCoordenada.y = Math.floor(pos2 / mts2) * mts2
+  return puntoCoordenada
 }
 // fin organiza punto
 /*
@@ -1023,7 +1121,9 @@ var calendar = $('#calendar').fullCalendar({
  select: function(start, end, allDay)
  {
    var fechaActual = new Date(start._d);
-   fechaSeleccionada = fechaActual;
+   fechaSeleccionada.setFullYear(fechaActual.getFullYear())
+   fechaSeleccionada.setMonth(fechaActual.getMonth())
+   fechaSeleccionada.setDate(fechaActual.getDate() + 1)
    pintaElementos()
 
  },
