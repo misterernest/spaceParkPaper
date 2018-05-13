@@ -42,14 +42,14 @@ body{
 }
 
 .btn-park{
-  width:50px;
-  height:50px;
+  width:45px;
+  height:45px;
   background-color: rgb(149,198,46);
   border-radius:100%;
   border: none;
   box-shadow: 0 3px 6px rgba(0,0,0,0.35), 0 3px 6px rgba(0,0,0,0.23);
   outline:none;
-  margin-right:26px;
+  margin-right:20px;
   z-index: 3;
   position: absolute;
   display: flex;
@@ -59,77 +59,76 @@ body{
   transform:scale(0);
   */
 }
+.btn-park>img{
+  width: 55%;
+}
 .btn-seleccion{
   background-color: #ff0000;
-  width: 53px!important;
-  height: 53px!important;
+  width: 48px!important;
+  height: 48px!important;
 }
 .btn-park:hover{
   background-color: rgb(255, 85, 1);
-  width: 55px;
-  height: 55px;
+  width: 50px;
+  height: 50px;
 }
 .btn-inactivo{
   background-color: #b6b6b6;
 }
 .btn-inactivo:hover{
   background-color: #b6b6b6;
-  width:50px;
-  height:50px;
+  width:45px;
+  height:45px;
+}
+.btn-session{
+  right:10px;
+  top: 10px;
+}
+.btn-gant{
+  right:65px;
+  top:10px;
 }
 .btn-eliminar1{
-  right:130px;
+  right:120px;
+  top:10px;
+}
+.btn-actualizarFecha1{
+  right:175px;
+  top:10px;
+}
+.btn-mover1{
+  right:230px;
+  top:10px;
+}
+.btn-rotar{
+  right:285px;
   top:10px;
 }
 .btn-eliminar2{
   right:10px;
   top:10px;
 }
-.btn-mover1{
-  right:250px;
+.btn-rollback{
+  right:340px;
   top:10px;
 }
-.btn-mover2{
-  right:70px;
-  top:10px;
-}
-.btn-actualizarFecha1{
-  right:190px;
+.btn-lupa1{
+  right:395px;
   top:10px;
 }
 .btn-actualizarFecha2{
   right:130px;
   top:10px;
 }
-.btn-lupa1{
-  right:370px;
-  top:10px;
-}
 .btn-lupa2{
   right:250px;
-  top:10px;
-}
-.btn-rollback{
-  right:310px;
   top:10px;
 }
 .btn-rollback2{
   right:190px;
   top:10px;
 }
-.btn-gant{
-  right:70px;
-  top:10px;
-}
 
-.btn-session{
-  right:10px;
-  top: 10px;
-}
-
-.btn-park>img{
-  width: 55%;
-}
 /* estilo de datetime picker */
 
 

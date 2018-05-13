@@ -62,6 +62,11 @@
       <img src="img/diagrama-grant.png" alt="Diagrama Gant">
     </div>
   </a>
+  <a href="session_close.php">
+    <div class="btn-park btn-session" id="session">
+      <img src="img/cerrar-sesion.png" alt="Cerrar sesion">
+    </div>
+  </a>
   <div id="info-popup" class="info-popup info-popup-zoom" hidden="hidden">
     <div>
       <span id="info-head"></span>
@@ -77,11 +82,6 @@
     </div>
   </div>
 
-  <a href="session_close.php">
-    <div class="btn-park btn-session" id="session">
-        <img src="img/cerrar-sesion.png" alt="Cerrar sesion">
-    </div>
-  </a>
   <div class="container" id="container-canvas-1">
     <div class="container-canvas width-70" id="container-canvas">
         <img src="img/mapa.png" class="img-park" id="img-park" >

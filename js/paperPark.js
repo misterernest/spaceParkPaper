@@ -339,16 +339,21 @@ $('#enterado').click(function () {
 
 var nameSeleccionado // varibale que almacena el valor del index de arrayElementosConsulta que esta seleccionado
 var dragPermiso = false // permiso para hacer drag sobre los elementos por defecto es false
+var dragRotar = false
 var elementoMovimiento // variable que se va a modificar
+var posZoom = new Point()
 function onMouseDown (event) {
+  posZoom = event
   if (pathPerimetro.contains(event.point)) {
     if (event.item && event.item.className == "Path") {
       if (event.item.name.slice(1, -1) == nameSeleccionado) {
         if (btnMover) {
           dragPermiso = true
           diferenciaEventRectangle(event)
-        }else if(btnRotar)
-      }else{
+        } else if (btnRotar) {
+          dragRotar = true
+        }
+      } else {
         accionesBtn()
         accionesBtn()
       }
@@ -359,7 +364,7 @@ function onMouseDown (event) {
           dragPermiso = true
           diferenciaEventRectangle(event)
         }else if (btnRotar) {
-
+          dragRotar = true
         }
       }else{
         accionesBtn()
@@ -405,6 +410,8 @@ function onMouseDrag(event) {
     project.activeLayer.children['"' + nameSeleccionado + '"'].position += event.delta
     project.activeLayer.children['subpath' + nameSeleccionado + '"'].position += event.delta
     project.activeLayer.children['text' + nameSeleccionado + '"'].position += event.delta
+  }else if(btnActivo && btnMover && dragPermiso){
+    rotar(event)
   }
 }
 
@@ -652,6 +659,25 @@ $('#mover').click(function () {
       accionesBtn()
       btnMover = false
       $("#mover").removeClass('btn-seleccion')
+    }
+    ventanaActualiza()
+  }
+})
+$('#rotar').click(function () {
+  if(btnActivo){
+    if (!btnRotar) {
+      accionesBtn()
+      accionesBtn()
+      btnRotar = true
+      if(!zoom){
+        zoomMapa(posZoom)
+      }
+      $("#rotar").addClass('btn-seleccion')
+    } else {
+      accionesBtn()
+      accionesBtn()
+      btnRotar = false
+      $("#rotar").removeClass('btn-seleccion')
     }
     ventanaActualiza()
   }
