@@ -1,20 +1,20 @@
 <?php
-
 if (isset($_POST['id']) && !empty($_POST['id']) &&
 	isset($_POST['x']) && !empty($_POST['x']) &&
 	isset($_POST['y']) && !empty($_POST['y']) &&
-	isset($_POST['date']) && !empty($_POST['date']) &&
 	isset($_POST['date1']) && !empty($_POST['date1']) &&
-isset($_POST['date2']) && !empty($_POST['date2']) &&
-isset($_POST['time1']) && !empty($_POST['time1']) &&
-isset($_POST['time2']) && !empty($_POST['time2']) &&
-isset($_POST['categoria']) && !empty($_POST['categoria']) &&
-isset($_POST['cliente']) && !empty($_POST['cliente']) &&
-isset($_POST['date']) && !empty($_POST['date']) &&
-isset($_POST['ancho']) && !empty($_POST['ancho']) &&
-isset($_POST['largo']) && !empty($_POST['largo']) &&
-isset($_POST['typeUpdate']) && !empty($_POST['typeUpdate'])&&
-isset($_POST['comentario']))  {
+	isset($_POST['date2']) && !empty($_POST['date2']) &&
+	isset($_POST['time1']) && !empty($_POST['time1']) &&
+	isset($_POST['time2']) && !empty($_POST['time2']) &&
+	isset($_POST['categoria']) && !empty($_POST['categoria']) &&
+	isset($_POST['cliente']) && !empty($_POST['cliente']) &&
+	isset($_POST['date']) && !empty($_POST['date']) &&
+	isset($_POST['ancho']) && !empty($_POST['ancho']) &&
+	isset($_POST['largo']) && !empty($_POST['largo']) &&
+	isset($_POST['typeUpdate']) && !empty($_POST['typeUpdate'])&&
+	isset($_POST['angulo']) &&
+	isset($_POST['comentario']))  {
+
 	// Datos recibidos
 	$xPost = $_POST['x'];
 	$yPost = $_POST['y'];
@@ -30,6 +30,7 @@ isset($_POST['comentario']))  {
 	$date = $_POST['date'];
 	$tipoActualizacion = $_POST['typeUpdate'];
 	$comentarioPost = $_POST['comentario'];
+	$anguloPost = $_POST['angulo'];
 	// Conexion base de datos
 	$contraquery = "";
 	require_once 'config.php';	// consultamos la reserva
@@ -46,6 +47,7 @@ isset($_POST['comentario']))  {
 	$comentario = $reserva1["comentario"];
 	$coordenadaX = $reserva1["coordenada_x"];
 	$coordenadaY = $reserva1["coordenada_y"];
+	$angulo = $reserva1["angulo"];
 
 
 	$fecha2a = explode(" ", $date);
@@ -84,9 +86,10 @@ isset($_POST['comentario']))  {
 				`fecha_final`,
 				`categoria`,
 				`cliente`,
-				`comentario`
+				`comentario`,
+				`angulo`
 			) VALUES (
-				NULL, '$xPost', '$yPost', '$ancho', '$largo', '$date', '$date2 $time2', '$categoriaPost', '$clientePost', '$comentarioPost');";
+				NULL, '$xPost', '$yPost', '$ancho', '$largo', '$date', '$date2 $time2', '$categoriaPost', '$clientePost', '$comentarioPost', '$anguloPost');";
 			$prepared = $pdo->prepare($queryi);
 			$resulti = $prepared->execute();
 			$prepared = null;
@@ -113,7 +116,8 @@ isset($_POST['comentario']))  {
 			fecha_final=\'$fechaf\',
 			cliente=\'$cliente\',
 			categoria=\'$categoria\',
-			comentario=\'$comentario\'
+			comentario=\'$comentario\',
+			angulo=\'$angulo\'
 			WHERE id=$id";
 			// termina proceso cache Update
 
@@ -123,7 +127,8 @@ isset($_POST['comentario']))  {
 			fecha_final='$date2 $time2',
 			cliente='$clientePost',
 			categoria='$categoriaPost',
-			comentario='$comentario'
+			comentario='$comentario',
+			angulo='$anguloPost'
 			WHERE id=$id";
 			$prepared = $pdo->prepare($queryu);
 			$resultu = $prepared->execute();

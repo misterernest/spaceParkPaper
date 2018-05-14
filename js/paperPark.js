@@ -144,6 +144,7 @@ function pintaElementos () {
   proporcion = (zoom) ? 1 : zoomProporcion
   var fechaInicialArray = new Date()
   var fechaFinalArray = new Date()
+  var rotateElement = 0
   for (var i = 0; i < arrayElementosConsulta.length; i++) {
     var rotacion = 0
     var fontSize = 14
@@ -153,6 +154,7 @@ function pintaElementos () {
     fechaFinalArray = organizaFecha(arrayElementosConsulta[i].fecha_final)
     if (fechaInicialArray <= fechaSeleccionada && fechaFinalArray > fechaSeleccionada) {
       fontSize = arrayElementosConsulta[i].ancho_x * proporcion * mts2 / 20
+      rotateElement = arrayElementosConsulta[i].angulo
       if(parseInt(arrayElementosConsulta[i].ancho_x) < parseInt(arrayElementosConsulta[i].largo_y)) {
         rotacion = 90
         fontSize = arrayElementosConsulta[i].largo_y * proporcion * mts2 / 5
@@ -169,6 +171,7 @@ function pintaElementos () {
         fillColor: colorCategoria[arrayElementosConsulta[i].categoria],
         strokeWidth: 0,
         name: '"' + i + '"',
+        rotation: rotateElement,
         data: {
           seleccionado: false,
           id:arrayElementosConsulta[i]
@@ -185,6 +188,7 @@ function pintaElementos () {
         ],
         visible: false,
         name: 'subpath' + i + '"',
+        rotation: rotateElement
       });
       var textTemp = new PointText({
         point: [
@@ -196,7 +200,8 @@ function pintaElementos () {
         fontFamily: 'Courier New',
         fontWeight: 'bold',
         name: 'text' + i + '"',
-        fontSize: fontSize
+        fontSize: fontSize,
+        rotation: rotateElement
       })
       textTemp.rotate(rotacion, pathTemp.point);
       textTemp.fitBounds(pathSubTemp.bounds)
@@ -214,6 +219,7 @@ function pintaElementos () {
 var idNuevo
 function pintaElementosTime (fecha1, fecha2) {
   arrayConsultaNombres = []
+  var rotateElement
   var fechaInicialElemento = new Date()
   var fechaFinalElemento = new Date()
   var fechaInicialArrayRango = new Date()
@@ -222,6 +228,7 @@ function pintaElementosTime (fecha1, fecha2) {
   fechaFinalArrayRango.setTime(Date.parse(fecha2))
   proporcion = (zoom) ? 1 : zoomProporcion
   for (var i = 0; i < arrayElementosConsultaTemp.length; i++) {
+    rotateElement = arrayElementosConsultaTemp[i].angulo
     fechaInicialElemento.setTime(Date.parse(arrayElementosConsultaTemp[i].fecha_incial))
     fechaFinalElemento.setTime(Date.parse(arrayElementosConsultaTemp[i].fecha_final))
     if (
@@ -243,6 +250,7 @@ function pintaElementosTime (fecha1, fecha2) {
         strokeWidth: 1,
         name: 'temp' + i,
         opacity: 1,
+        rotation: rotateElement,
         data: {
           fechaIni: dias[fechaInicialElemento.getDay()] + ' ' + fechaInicialElemento.getDate() + ' de ' + mesNumtext(fechaInicialElemento.getMonth() + 1) + ', del ' + fechaInicialElemento.getFullYear(),
           fechaFin: dias[fechaFinalElemento.getDay()] + ' ' + fechaFinalElemento.getDate() + ' de ' + mesNumtext(fechaFinalElemento.getMonth() + 1) + ', del ' + fechaFinalElemento.getFullYear(),
@@ -343,15 +351,17 @@ var dragRotar = false
 var elementoMovimiento // variable que se va a modificar
 var posZoom = new Point()
 function onMouseDown (event) {
-  posZoom = event
   if (pathPerimetro.contains(event.point)) {
+    posZoom = event
     if (event.item && event.item.className == "Path") {
+      posZoom = event
       if (event.item.name.slice(1, -1) == nameSeleccionado) {
         if (btnMover) {
           dragPermiso = true
           diferenciaEventRectangle(event)
         } else if (btnRotar) {
           dragRotar = true
+          gradosSeleccionado = event.item.rotation
         }
       } else {
         accionesBtn()
@@ -359,12 +369,14 @@ function onMouseDown (event) {
       }
       nameSeleccionado = event.item.name.slice(1, -1)
     } else if (event.item && event.item.className == "PointText") {
+      posZoom = event
       if (event.item.name.slice(4, -1) == nameSeleccionado) {
         if ( btnMover) {
           dragPermiso = true
           diferenciaEventRectangle(event)
         }else if (btnRotar) {
           dragRotar = true
+          gradosSeleccionado = event.item.rotation
         }
       }else{
         accionesBtn()
@@ -410,7 +422,7 @@ function onMouseDrag(event) {
     project.activeLayer.children['"' + nameSeleccionado + '"'].position += event.delta
     project.activeLayer.children['subpath' + nameSeleccionado + '"'].position += event.delta
     project.activeLayer.children['text' + nameSeleccionado + '"'].position += event.delta
-  }else if(btnActivo && btnMover && dragPermiso){
+  } else if (btnActivo && dragRotar){
     rotar(event)
   }
 }
@@ -433,6 +445,9 @@ function onMouseUp (event) {
     fechaFinalInArray = arrayElementosConsulta[nameSeleccionado].fecha_final
     id = arrayElementosConsulta[nameSeleccionado].id
     mueveElemento(x, y , ancho, largo, fechaSeleccionada, fechaFinalInArray, id)
+  } else if (btnRotar && btnActivo) {
+    dragPermiso = false
+    guardarRotar()
   }
 }
 function mueveElemento (x, y , ancho, largo, fechaSeleccionada, fechaFinalInArray, id) {
@@ -460,7 +475,7 @@ function mueveElemento (x, y , ancho, largo, fechaSeleccionada, fechaFinalInArra
 
         $('#aceptar').click(function () {
           $('#confirm1').modal('hide')
-          actualizarBD (puntoTemp.x, puntoTemp.y, ancho, largo, date1, date2, time1, time2,categoria, cliente ,id, comentario, dateTimeSeleccionada, 1)
+          actualizarBD(puntoTemp.x, puntoTemp.y, ancho, largo, date1, date2, time1, time2,categoria, cliente ,id, comentario, dateTimeSeleccionada, 1, arrayElementosConsulta[nameSeleccionado].angulo)
         });
 
         $('#rechazar').click(function(){
@@ -477,13 +492,92 @@ function mueveElemento (x, y , ancho, largo, fechaSeleccionada, fechaFinalInArra
       }
   }
 }
+var gradosSeleccionado = 0
 
-function rotar(event){
+function rotar (event) {
+  var elemento_x = arrayElementosConsulta[nameSeleccionado].coordenada_x + (arrayElementosConsulta[nameSeleccionado].ancho_x / 2)
+  var elemento_y = arrayElementosConsulta[nameSeleccionado].coordenada_y + (arrayElementosConsulta[nameSeleccionado].largo_y / 2)
+  if (event.point.x >= elemento_x && event.point.y >= elemento_y) {
+    if (event.delta.x != 0) {
+      factorCambio = 0.05
+    } else {
+      factorCambio = 0.05
+    }
+  } else if (event.point.x >= elemento_x && event.point.y <= elemento_y) {
+    if (event.delta.x != 0) {
+      factorCambio = -0.05
+    } else {
+      factorCambio = 0.05
+    }
+  } else if (event.point.x <= elemento_x && event.point.y <= elemento_y) {
+    factorCambio = -0.05
+  } else if (event.point.x <= elemento_x && event.point.y >= elemento_y) {
+    factorCambio = 0.05
+    if (event.delta.y != 0) {
+      factorCambio = -0.05
+    }
+  }
+  project.activeLayer.children['"' + nameSeleccionado + '"'].rotation += event.delta.angle * factorCambio
+  project.activeLayer.children['subpath' + nameSeleccionado + '"'].rotation += event.delta.angle * factorCambio
+  project.activeLayer.children['text' + nameSeleccionado + '"'].rotation += event.delta.angle * factorCambio
+  gradosSeleccionado += event.delta.angle * factorCambio
+  arrayElementosConsulta[nameSeleccionado].angulo = gradosSeleccionado
+  gradosSeleccionado = Math.floor(gradosSeleccionado) % 360
+}
+//aqui voy
+function guardarRotar () {
+  var puntoTemp = new Point({
+    x: arrayElementosConsulta[nameSeleccionado].coordenada_x,
+    y: arrayElementosConsulta[nameSeleccionado].coordenada_y
+  })
+  id = arrayElementosConsulta[nameSeleccionado].id
+  dateTime1 = new Date(Date.parse(arrayElementosConsulta[nameSeleccionado].fecha_incial))
+  fechaFinalInArray = arrayElementosConsulta[nameSeleccionado].fecha_final
+  dateTime2 = new Date(Date.parse(fechaFinalInArray))
+  var date1 = dateTime1.getFullYear() + "-" + (dateTime1.getMonth() + 1) + "-" + dateTime1.getDate()
+  var time1 = dateTime1.getHours() + ":" + "00:00"
+  var date2 = dateTime2.getFullYear() + "-" + (dateTime2.getMonth() + 1) + "-" + dateTime2.getDate()
+  var time2 = dateTime2.getHours() + ":" + dateTime2.getMinutes() + ":00"
+  dateTimeSeleccionada = fechaSeleccionada.getFullYear() + "-" + (fechaSeleccionada.getMonth() + 1) + "-" + fechaSeleccionada.getDate() + " " + fechaSeleccionada.getHours() + ":" + "00:00"
+  categoria = arrayElementosConsulta[nameSeleccionado].categoria
+  cliente = arrayElementosConsulta[nameSeleccionado].cliente
+  comentario = arrayElementosConsulta[nameSeleccionado].comentario
+  ancho = arrayElementosConsulta[nameSeleccionado].ancho_x
+  largo = arrayElementosConsulta[nameSeleccionado].largo_y
+  angulo = gradosSeleccionado
+  console.log(angulo);
+  if (revisaEspacio(puntoTemp.x, puntoTemp.y , ancho, largo, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
+      if (btnActivo && btnRotar) {
+        $('#myConfirm1Label').text('PREGUNTA')
+        $('#msj-confirm1').text('')
+        $('#msj-confirm1').append('<div class="col-lg-11 col-md-11">Desea mover elemento a la nueva ubicación</div>');
+        $('#confirm1').modal('show')
 
+        $('#aceptar').click(function () {
+          $('#confirm1').modal('hide')
+          console.log(angulo);
+          actualizarBD (puntoTemp.x, puntoTemp.y, ancho, largo, date1, date2, time1, time2,categoria, cliente ,id, comentario, dateTimeSeleccionada, 1, angulo)
+        });
+
+        $('#rechazar').click(function(){
+          $('#confirm1').modal('hide')
+          location.reload()
+        });
+        $('#cerrar').click(function(){
+          $('#confirm1').modal('hide')
+          location.reload()
+        });
+        $('#confirm1').on('hidden.bs.modal', function () {
+          location.reload()
+        })
+      }
+  }
 }
 // ////////UBICA COORDENADA EN EL ZOOM////////////////////////////////
 
 function zoomMapa (e) {
+  var posX1 = 0
+  var posY1 = 0
   var posX1 = e.point.x/view.size.width;
   var posY1 = e.point.y/view.size.height;
   zoomDo();
@@ -784,9 +878,10 @@ $('#guardar').click(function () {
         guardarBaseDatos(x, y, ancho, largo, date1, date2, time1, time2, categoria, cliente, angulo, comentario)
       }
     } else {
+      x = arrayElementosConsulta[nameSeleccionado].coordenada_x
+      y = arrayElementosConsulta[nameSeleccionado].coordenada_y
+      zoomDo()
       if (revisaEspacio(x, y , ancho, largo, date1, time1, date2, time2, id)) {
-        x = arrayElementosConsulta[nameSeleccionado].coordenada_x
-        y = arrayElementosConsulta[nameSeleccionado].coordenada_y
         var fechaRevisar = (fechaSeleccionada.getFullYear() + '-' + (fechaSeleccionada.getMonth() + 1) + '-' + fechaSeleccionada.getDate() + ' ' + fechaSeleccionada.getHours() + ':' + '00:00')
         actualizarBD(
           x,
@@ -802,7 +897,8 @@ $('#guardar').click(function () {
           id,
           comentario,
           fechaRevisar,
-          tipoActualizacion
+          tipoActualizacion,
+          arrayElementosConsulta[nameSeleccionado].angulo
         )
       }
     }
@@ -834,9 +930,10 @@ function validaFecha (fecha1, fecha2) {
 }
 
 // //inicio funcion para revisar si el espacio esta ocupando
-// aqui voy
 function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2, id) {
   var respuesta = true
+  console.log(id);
+  console.log(arrayElementosConsulta);
   arrayElementosConsultaTemp = arrayElementosConsulta.slice()
   if (id >=0) {
     for (var i = 0; i < arrayElementosConsultaTemp.length; i++) {
@@ -852,7 +949,8 @@ function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2, id) {
     ancho_x: ancho,
     largo_y: largo,
     fecha_inicial: date1 + " " + time1,
-    fecha_final: date2 + " " + time2
+    fecha_final: date2 + " " + time2,
+    angulo: gradosSeleccionado
   })
   pintaElementosTime(date1 + " " + time1, date2 + " " + time2) // dibuja todos los elementos en el tiempo para comprobar si se topa con el nuevo elemento
   mensaje = [].slice()
@@ -866,18 +964,19 @@ function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2, id) {
       break;
     }
   }
-  if (!AreaPerimetro(x, y , ancho, largo)) {
-    mensaje.push('<div class="col-lg-11 col-md-11" id="borrarMsj">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>')
-    respuesta = false
-  }
+  if (!btnRotar){
+    if (!AreaPerimetro(x, y , ancho, largo)) {
+      mensaje.push('<div class="col-lg-11 col-md-11" id="borrarMsj">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>')
+      respuesta = false
+    }
 
+  }
   if (!respuesta) {
     $('#myAlertLabel').text('ADVERTENCIA')
     for (var i = 0; i < mensaje.length; i++) {
       $('#msj-alert').append('<div class="col-lg-11 col-md-11" id="borrarMsj" >' + mensaje[i] + '</div>')
     }
-    $('#alert').modal('show');
-
+    $('#alert').modal('show')
     formularioBorrar = false
     pintaElementos()
   }
@@ -1098,7 +1197,7 @@ function guardarBaseDatos (x, y, ancho,largo, date1,date2,time1,time2, categoria
 }
 
 // actualizarBD(600,150, 9, '2018-03-20 02:53:00')
-function actualizarBD (x, y, ancho,largo, date1,date2,time1,time2, categoria, cliente ,id, comentario, date, typeUpdate) {
+function actualizarBD (x, y, ancho, largo, date1, date2, time1, time2, categoria, cliente, id, comentario, date, typeUpdate, angulo) {
 // Convertir a objeto
   var data = {}
 
@@ -1116,6 +1215,7 @@ function actualizarBD (x, y, ancho,largo, date1,date2,time1,time2, categoria, cl
   data.comentario = comentario
   data.cliente = cliente
   data.typeUpdate = typeUpdate
+  data.angulo = angulo
   var url = 'actualizar.php'   //este es el PHP al que se llama por AJAX
   resultado = new Array()
   $.ajax({
