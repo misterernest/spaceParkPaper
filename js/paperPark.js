@@ -363,6 +363,9 @@ function onMouseDown (event) {
           dragPermiso = true
           diferenciaEventRectangle(event)
         } else if (btnRotar) {
+          project.activeLayer.children['"' + nameSeleccionado + '"'].rotation = -parseInt(arrayElementosConsulta[nameSeleccionado].angulo)
+          project.activeLayer.children['subpath' + nameSeleccionado + '"'].rotation = -parseInt(arrayElementosConsulta[nameSeleccionado].angulo)
+          project.activeLayer.children['text' + nameSeleccionado + '"'].visible = false
           elemento_x = arrayElementosConsulta[nameSeleccionado].coordenada_x + (arrayElementosConsulta[nameSeleccionado].ancho_x * mts2 / 2)
           elemento_y = arrayElementosConsulta[nameSeleccionado].coordenada_y + (arrayElementosConsulta[nameSeleccionado].largo_y * mts2 / 2)
           vectorTempRotar = event.point - new Point(elemento_x, elemento_y)
@@ -382,6 +385,9 @@ function onMouseDown (event) {
           dragPermiso = true
           diferenciaEventRectangle(event)
         }else if (btnRotar) {
+          project.activeLayer.children['"' + nameSeleccionado + '"'].rotation = -parseInt(arrayElementosConsulta[nameSeleccionado].angulo)
+          project.activeLayer.children['subpath' + nameSeleccionado + '"'].rotation = -parseInt(arrayElementosConsulta[nameSeleccionado].angulo)
+          project.activeLayer.children['text' + nameSeleccionado + '"'].visible = false
           elemento_x = arrayElementosConsulta[nameSeleccionado].coordenada_x + (arrayElementosConsulta[nameSeleccionado].ancho_x * mts2 / 2)
           elemento_y = arrayElementosConsulta[nameSeleccionado].coordenada_y + (arrayElementosConsulta[nameSeleccionado].largo_y * mts2 / 2)
           vectorTempRotar = event.point - new Point(elemento_x, elemento_y)
@@ -460,9 +466,9 @@ function onMouseUp (event) {
     dragPermiso = false
     guardarRotar()
     if (anguloIncialRotar < 0 ) {
-      gradosSeleccionado += Math.abs(anguloIncialRotar)
+      gradosSeleccionado += Math.abs(anguloIncialRotar) + parseInt(arrayElementosConsulta[nameSeleccionado].angulo)
     } else {
-      gradosSeleccionado -= anguloIncialRotar
+      gradosSeleccionado -= anguloIncialRotar + parseInt(arrayElementosConsulta[nameSeleccionado].angulo)
     }
     arrayElementosConsulta[nameSeleccionado].angulo = gradosSeleccionado
   }
@@ -512,6 +518,7 @@ function mueveElemento (x, y , ancho, largo, fechaSeleccionada, fechaFinalInArra
 var gradosSeleccionado = 0
 var anguloIncialRotar = 0
 var vectorTempRotar
+var intersections
 function rotar (event) {
   vectorTempRotar = event.point - new Point(elemento_x, elemento_y)
   project.activeLayer.children['"' + nameSeleccionado + '"'].rotation = -gradosSeleccionado
@@ -521,6 +528,9 @@ function rotar (event) {
   project.activeLayer.children['text' + nameSeleccionado + '"'].visible = false
   gradosSeleccionado = vectorTempRotar.angle
   arrayElementosConsulta[nameSeleccionado].angulo = Math.abs(gradosSeleccionado)
+
+  intersections = project.activeLayer.children['"' + nameSeleccionado + '"'].getIntersections(pathPerimetro);
+  console.log(intersections)
 }
 //aqui voy
 function guardarRotar () {
@@ -913,7 +923,7 @@ $('#cerrar').click(function(){
 });
 
 $('#confirm1').on('hidden.bs.modal', function () {
-  // revisar codigo
+  location.reload()
 });
 
 // Valida fecha la inicial se mayor a la final
@@ -964,6 +974,11 @@ function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2, id) {
       respuesta = false
     }
 
+  } else {
+    if (intersections.length > 0) {
+      mensaje.push('<div class="col-lg-11 col-md-11" id="borrarMsj">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>')
+      respuesta = false
+    }
   }
   if (!respuesta) {
     $('#myAlertLabel').text('ADVERTENCIA')
@@ -981,6 +996,7 @@ $('#enterado').click(function () {
   if(btnDeshacer) {
     $('#alert').modal('hide')
     $('#msj-alert').empty()
+    location.reload()
   }
 })
 
