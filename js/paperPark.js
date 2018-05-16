@@ -350,6 +350,9 @@ var dragPermiso = false // permiso para hacer drag sobre los elementos por defec
 var dragRotar = false
 var elementoMovimiento // variable que se va a modificar
 var posZoom = new Point()
+var lineaRotarTemp
+var elemento_x
+var elemento_y
 function onMouseDown (event) {
   if (pathPerimetro.contains(event.point)) {
     posZoom = event
@@ -360,8 +363,12 @@ function onMouseDown (event) {
           dragPermiso = true
           diferenciaEventRectangle(event)
         } else if (btnRotar) {
+          elemento_x = arrayElementosConsulta[nameSeleccionado].coordenada_x + (arrayElementosConsulta[nameSeleccionado].ancho_x * mts2 / 2)
+          elemento_y = arrayElementosConsulta[nameSeleccionado].coordenada_y + (arrayElementosConsulta[nameSeleccionado].largo_y * mts2 / 2)
+          vectorTempRotar = event.point - new Point(elemento_x, elemento_y)
+          anguloIncialRotar = vectorTempRotar.angle
           dragRotar = true
-          gradosSeleccionado = event.item.rotation
+          //gradosSeleccionado = event.item.rotation
         }
       } else {
         accionesBtn()
@@ -375,8 +382,12 @@ function onMouseDown (event) {
           dragPermiso = true
           diferenciaEventRectangle(event)
         }else if (btnRotar) {
+          elemento_x = arrayElementosConsulta[nameSeleccionado].coordenada_x + (arrayElementosConsulta[nameSeleccionado].ancho_x * mts2 / 2)
+          elemento_y = arrayElementosConsulta[nameSeleccionado].coordenada_y + (arrayElementosConsulta[nameSeleccionado].largo_y * mts2 / 2)
+          vectorTempRotar = event.point - new Point(elemento_x, elemento_y)
+          anguloIncialRotar = vectorTempRotar.angle
           dragRotar = true
-          gradosSeleccionado = event.item.rotation
+          //gradosSeleccionado = event.item.rotation
         }
       }else{
         accionesBtn()
@@ -448,6 +459,12 @@ function onMouseUp (event) {
   } else if (btnRotar && btnActivo) {
     dragPermiso = false
     guardarRotar()
+    if (anguloIncialRotar < 0 ) {
+      gradosSeleccionado += Math.abs(anguloIncialRotar)
+    } else {
+      gradosSeleccionado -= anguloIncialRotar
+    }
+    arrayElementosConsulta[nameSeleccionado].angulo = gradosSeleccionado
   }
 }
 function mueveElemento (x, y , ancho, largo, fechaSeleccionada, fechaFinalInArray, id) {
@@ -493,36 +510,17 @@ function mueveElemento (x, y , ancho, largo, fechaSeleccionada, fechaFinalInArra
   }
 }
 var gradosSeleccionado = 0
-
+var anguloIncialRotar = 0
+var vectorTempRotar
 function rotar (event) {
-  var elemento_x = arrayElementosConsulta[nameSeleccionado].coordenada_x + (arrayElementosConsulta[nameSeleccionado].ancho_x / 2)
-  var elemento_y = arrayElementosConsulta[nameSeleccionado].coordenada_y + (arrayElementosConsulta[nameSeleccionado].largo_y / 2)
-  if (event.point.x >= elemento_x && event.point.y >= elemento_y) {
-    if (event.delta.x != 0) {
-      factorCambio = 0.05
-    } else {
-      factorCambio = 0.05
-    }
-  } else if (event.point.x >= elemento_x && event.point.y <= elemento_y) {
-    if (event.delta.x != 0) {
-      factorCambio = -0.05
-    } else {
-      factorCambio = 0.05
-    }
-  } else if (event.point.x <= elemento_x && event.point.y <= elemento_y) {
-    factorCambio = -0.05
-  } else if (event.point.x <= elemento_x && event.point.y >= elemento_y) {
-    factorCambio = 0.05
-    if (event.delta.y != 0) {
-      factorCambio = -0.05
-    }
-  }
-  project.activeLayer.children['"' + nameSeleccionado + '"'].rotation += event.delta.angle * factorCambio
-  project.activeLayer.children['subpath' + nameSeleccionado + '"'].rotation += event.delta.angle * factorCambio
-  project.activeLayer.children['text' + nameSeleccionado + '"'].rotation += event.delta.angle * factorCambio
-  gradosSeleccionado += event.delta.angle * factorCambio
-  arrayElementosConsulta[nameSeleccionado].angulo = gradosSeleccionado
-  gradosSeleccionado = Math.floor(gradosSeleccionado) % 360
+  vectorTempRotar = event.point - new Point(elemento_x, elemento_y)
+  project.activeLayer.children['"' + nameSeleccionado + '"'].rotation = -gradosSeleccionado
+  project.activeLayer.children['subpath' + nameSeleccionado + '"'].rotation = -gradosSeleccionado
+  project.activeLayer.children['"' + nameSeleccionado + '"'].rotation = vectorTempRotar.angle
+  project.activeLayer.children['subpath' + nameSeleccionado + '"'].rotation = vectorTempRotar.angle
+  project.activeLayer.children['text' + nameSeleccionado + '"'].visible = false
+  gradosSeleccionado = vectorTempRotar.angle
+  arrayElementosConsulta[nameSeleccionado].angulo = Math.abs(gradosSeleccionado)
 }
 //aqui voy
 function guardarRotar () {
@@ -545,7 +543,6 @@ function guardarRotar () {
   ancho = arrayElementosConsulta[nameSeleccionado].ancho_x
   largo = arrayElementosConsulta[nameSeleccionado].largo_y
   angulo = gradosSeleccionado
-  console.log(angulo);
   if (revisaEspacio(puntoTemp.x, puntoTemp.y , ancho, largo, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
       if (btnActivo && btnRotar) {
         $('#myConfirm1Label').text('PREGUNTA')
@@ -555,7 +552,6 @@ function guardarRotar () {
 
         $('#aceptar').click(function () {
           $('#confirm1').modal('hide')
-          console.log(angulo);
           actualizarBD (puntoTemp.x, puntoTemp.y, ancho, largo, date1, date2, time1, time2,categoria, cliente ,id, comentario, dateTimeSeleccionada, 1, angulo)
         });
 
@@ -758,12 +754,12 @@ $('#mover').click(function () {
   }
 })
 $('#rotar').click(function () {
-  if(btnActivo){
+  if (btnActivo) {
     if (!btnRotar) {
       accionesBtn()
       accionesBtn()
       btnRotar = true
-      if(!zoom){
+      if (!zoom) {
         zoomMapa(posZoom)
       }
       $("#rotar").addClass('btn-seleccion')
@@ -932,8 +928,6 @@ function validaFecha (fecha1, fecha2) {
 // //inicio funcion para revisar si el espacio esta ocupando
 function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2, id) {
   var respuesta = true
-  console.log(id);
-  console.log(arrayElementosConsulta);
   arrayElementosConsultaTemp = arrayElementosConsulta.slice()
   if (id >=0) {
     for (var i = 0; i < arrayElementosConsultaTemp.length; i++) {
