@@ -100,6 +100,8 @@ perimetro() // llamada a la funcion que pinta el perimetro
 function perimetro () { // funcion que pinta el permietro y lo actualiza
   pathPerimetro.removeSegments()
   pathPerimetro.strokeColor = 'red'
+  pathPerimetro.opacity = 0
+
   proporcion = (zoom) ? 1 : zoomProporcion // sin zoom y con zoom
   pathPerimetro.moveTo(limite[0][0] * proporcion, limite[0][1] * proporcion)
   // pinta las lineas al rededor del mapa
@@ -358,8 +360,6 @@ var lineaRotarTemp
 var elemento_x
 var elemento_y
 function onMouseDown (event) {
-  console.log('mouseDown');
-  console.log(event.point);
   if (pathPerimetro.contains(event.point)) {
     posZoom = event.point
     if (event.item && event.item.className == "Path") {
@@ -377,7 +377,6 @@ function onMouseDown (event) {
           vectorTempRotar = event.point - new Point(elemento_x, elemento_y)
           anguloIncialRotar = vectorTempRotar.angle
           dragRotar = true
-          //gradosSeleccionado = event.item.rotation
         }
       } else {
         accionesBtn()
@@ -399,7 +398,6 @@ function onMouseDown (event) {
           vectorTempRotar = event.point - new Point(elemento_x, elemento_y)
           anguloIncialRotar = vectorTempRotar.angle
           dragRotar = true
-          //gradosSeleccionado = event.item.rotation
         }
       }else{
         accionesBtn()
@@ -433,8 +431,8 @@ var diferenciaPosX = 0
 var diferenciaPosy = 0
 function diferenciaEventRectangle (event) {
   proporcion = (zoom) ? 1 : zoomProporcion // sin zoom y con zoom
-  diferenciaPosX = event.point.x - arrayElementosConsulta[nameSeleccionado].coordenada_x
-  diferenciaPosy = event.point.y - arrayElementosConsulta[nameSeleccionado].coordenada_y
+  diferenciaPosX = arrayElementosConsulta[nameSeleccionado].ancho_x * mts2 * proporcion / 2
+  diferenciaPosy = arrayElementosConsulta[nameSeleccionado].largo_y * mts2 * proporcion / 2
 }
 var posElementoDrag = new Point()
 function onMouseDrag(event) {
@@ -443,7 +441,6 @@ function onMouseDrag(event) {
     project.activeLayer.children['"' + nameSeleccionado + '"'].position += event.delta
     project.activeLayer.children['subpath' + nameSeleccionado + '"'].position += event.delta
     project.activeLayer.children['text' + nameSeleccionado + '"'].position += event.delta
-    console.log(project.activeLayer.children['"' + nameSeleccionado + '"'].position);
   } else if (btnActivo && dragRotar){
     rotar(event)
   }
@@ -453,20 +450,29 @@ function onMouseUp (event) {
   proporcion = (zoom) ? 1 : zoomProporcion // sin zoom y con zoom
   if (!zoom && btnMover && dragPermiso) {
     dragPermiso = false
-    arrayElementosConsulta[nameSeleccionado].coordenada_x = (event.point.x * proporcion) - diferenciaPosX
-    arrayElementosConsulta[nameSeleccionado].coordenada_y = (event.point.y * proporcion) - diferenciaPosy
-    zoomMapa(event.point)
-  } else if (zoom && btnMover && dragPermiso) {
-    dragPermiso = false
-    arrayElementosConsulta[nameSeleccionado].coordenada_x = event.point.x - diferenciaPosX
-    arrayElementosConsulta[nameSeleccionado].coordenada_y = event.point.y - diferenciaPosy
+
+
+    arrayElementosConsulta[nameSeleccionado].coordenada_x = (project.activeLayer.children['"' + nameSeleccionado + '"'].position.x - diferenciaPosX) / proporcion
+    arrayElementosConsulta[nameSeleccionado].coordenada_y = (project.activeLayer.children['"' + nameSeleccionado + '"'].position.y - diferenciaPosy) / proporcion
     x = arrayElementosConsulta[nameSeleccionado].coordenada_x
     y = arrayElementosConsulta[nameSeleccionado].coordenada_y
     ancho = arrayElementosConsulta[nameSeleccionado].ancho_x
     largo = arrayElementosConsulta[nameSeleccionado].largo_y
     fechaFinalInArray = arrayElementosConsulta[nameSeleccionado].fecha_final
     id = arrayElementosConsulta[nameSeleccionado].id
-    mueveElemento(x, y , ancho, largo, fechaSeleccionada, fechaFinalInArray, id)
+    zoomMapa(event.point)
+    mueveElemento(x, y , ancho, largo, fechaSeleccionada, fechaFinalInArray, id, true)
+  } else if (zoom && btnMover && dragPermiso) {
+    dragPermiso = false
+    arrayElementosConsulta[nameSeleccionado].coordenada_x = (project.activeLayer.children['"' + nameSeleccionado + '"'].position.x - diferenciaPosX)
+    arrayElementosConsulta[nameSeleccionado].coordenada_y = (project.activeLayer.children['"' + nameSeleccionado + '"'].position.y - diferenciaPosy)
+    x = arrayElementosConsulta[nameSeleccionado].coordenada_x
+    y = arrayElementosConsulta[nameSeleccionado].coordenada_y
+    ancho = arrayElementosConsulta[nameSeleccionado].ancho_x
+    largo = arrayElementosConsulta[nameSeleccionado].largo_y
+    fechaFinalInArray = arrayElementosConsulta[nameSeleccionado].fecha_final
+    id = arrayElementosConsulta[nameSeleccionado].id
+    mueveElemento(x, y , ancho, largo, fechaSeleccionada, fechaFinalInArray, id, false)
   } else if (btnRotar && btnActivo) {
     dragPermiso = false
     guardarRotar()
@@ -478,7 +484,7 @@ function onMouseUp (event) {
     arrayElementosConsulta[nameSeleccionado].angulo = gradosSeleccionado
   }
 }
-function mueveElemento (x, y , ancho, largo, fechaSeleccionada, fechaFinalInArray, id) {
+function mueveElemento (x, y , ancho, largo, fechaSeleccionada, fechaFinalInArray, id, primerPaso) {
   var puntoTemp = new Point({
     x: x,
     y: y
@@ -494,30 +500,31 @@ function mueveElemento (x, y , ancho, largo, fechaSeleccionada, fechaFinalInArra
   categoria = arrayElementosConsulta[nameSeleccionado].categoria
   cliente = arrayElementosConsulta[nameSeleccionado].cliente
   comentario = arrayElementosConsulta[nameSeleccionado].comentario
-  if (revisaEspacio(puntoTemp.x, puntoTemp.y , ancho, largo, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
-      if (btnActivo && btnMover) {
-        $('#myConfirm1Label').text('PREGUNTA')
-        $('#msj-confirm1').text('')
-        $('#msj-confirm1').append('<div class="col-lg-11 col-md-11">Desea mover elemento a la nueva ubicación</div>');
-        $('#confirm1').modal('show')
+  angulo = arrayElementosConsulta[nameSeleccionado].angulo
+  if (revisaEspacio(puntoTemp.x, puntoTemp.y , ancho, largo, angulo, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
+    if (btnActivo && btnMover && !primerPaso) {
+      $('#myConfirm1Label').text('PREGUNTA')
+      $('#msj-confirm1').text('')
+      $('#msj-confirm1').append('<div class="col-lg-11 col-md-11">Desea mover elemento a la nueva ubicación</div>');
+      $('#confirm1').modal('show')
 
-        $('#aceptar').click(function () {
-          $('#confirm1').modal('hide')
-          actualizarBD(puntoTemp.x, puntoTemp.y, ancho, largo, date1, date2, time1, time2,categoria, cliente ,id, comentario, dateTimeSeleccionada, 1, arrayElementosConsulta[nameSeleccionado].angulo)
-        });
+      $('#aceptar').click(function () {
+        $('#confirm1').modal('hide')
+        actualizarBD(puntoTemp.x, puntoTemp.y, ancho, largo, date1, date2, time1, time2,categoria, cliente ,id, comentario, dateTimeSeleccionada, 1, angulo)
+      });
 
-        $('#rechazar').click(function(){
-          $('#confirm1').modal('hide')
-          location.reload()
-        });
-        $('#cerrar').click(function(){
-          $('#confirm1').modal('hide')
-          location.reload()
-        });
-        $('#confirm1').on('hidden.bs.modal', function () {
-          location.reload()
-        })
-      }
+      $('#rechazar').click(function () {
+        $('#confirm1').modal('hide')
+        location.reload()
+      });
+      $('#cerrar').click(function () {
+        $('#confirm1').modal('hide')
+        location.reload()
+      });
+      $('#confirm1').on('hidden.bs.modal', function () {
+        location.reload()
+      })
+    }
   }
 }
 var gradosSeleccionado = 0
@@ -534,7 +541,7 @@ function rotar (event) {
   gradosSeleccionado = vectorTempRotar.angle
   arrayElementosConsulta[nameSeleccionado].angulo = Math.abs(gradosSeleccionado)
 
-  intersections = project.activeLayer.children['"' + nameSeleccionado + '"'].getIntersections(pathPerimetro);
+
 }
 //aqui voy
 function guardarRotar () {
@@ -557,7 +564,7 @@ function guardarRotar () {
   ancho = arrayElementosConsulta[nameSeleccionado].ancho_x
   largo = arrayElementosConsulta[nameSeleccionado].largo_y
   angulo = gradosSeleccionado
-  if (revisaEspacio(puntoTemp.x, puntoTemp.y , ancho, largo, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
+  if (revisaEspacio(puntoTemp.x, puntoTemp.y , ancho, largo, angulo, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
       if (btnActivo && btnRotar) {
         $('#myConfirm1Label').text('PREGUNTA')
         $('#msj-confirm1').text('')
@@ -586,9 +593,6 @@ function guardarRotar () {
 // ////////UBICA COORDENADA EN EL ZOOM////////////////////////////////
 
 function zoomMapa (punto) {
-  console.log('zoom mapa');
-  console.log(punto.x);
-  console.log(punto.y);
   var posX1 = 0
   var posY1 = 0
   var posX1 = punto.x/view.size.width;
@@ -882,21 +886,21 @@ $('#guardar').click(function () {
     var time2 = $('#time1').val();
     var categoria = $('#categoria').val();
     var cliente = $('#cliente').val();
-    var angulo = 0
+    var angulo = arrayElementosConsulta[nameSeleccionado].angulo
     var comentario = $('#comentario').val();
     if (nuevoElemento) {
       // guardarBaseDatos (x, y, ancho,largo, date1,date2,time1,time2, categoria, cliente, angulo, comentario)
       var x = coordenadaNuevoElemento.x
       var y = coordenadaNuevoElemento.y
       mensaje = [].slice()
-      if (revisaEspacio(x, y , ancho, largo, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
+      if (revisaEspacio(x, y , ancho, largo, 0, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
         guardarBaseDatos(x, y, ancho, largo, date1, date2, time1, time2, categoria, cliente, angulo, comentario)
       }
     } else {
       x = arrayElementosConsulta[nameSeleccionado].coordenada_x
       y = arrayElementosConsulta[nameSeleccionado].coordenada_y
       zoomDo()
-      if (revisaEspacio(x, y , ancho, largo, date1, time1, date2, time2, id)) {
+      if (revisaEspacio(x, y , ancho, largo, angulo, date1, time1, date2, time2, id)) {
         var fechaRevisar = (fechaSeleccionada.getFullYear() + '-' + (fechaSeleccionada.getMonth() + 1) + '-' + fechaSeleccionada.getDate() + ' ' + fechaSeleccionada.getHours() + ':' + '00:00')
         actualizarBD(
           x,
@@ -945,7 +949,7 @@ function validaFecha (fecha1, fecha2) {
 }
 
 // //inicio funcion para revisar si el espacio esta ocupando
-function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2, id) {
+function revisaEspacio (x, y , ancho, largo, angulo,date1, time1, date2, time2, id) {
   var respuesta = true
   arrayElementosConsultaTemp = arrayElementosConsulta.slice()
   if (id >=0) {
@@ -963,7 +967,7 @@ function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2, id) {
     largo_y: largo,
     fecha_inicial: date1 + " " + time1,
     fecha_final: date2 + " " + time2,
-    angulo: gradosSeleccionado
+    angulo: angulo
   })
   pintaElementosTime(date1 + " " + time1, date2 + " " + time2) // dibuja todos los elementos en el tiempo para comprobar si se topa con el nuevo elemento
   mensaje = [].slice()
@@ -977,8 +981,10 @@ function revisaEspacio (x, y , ancho, largo, date1, time1, date2, time2, id) {
       break;
     }
   }
+  intersections = project.activeLayer.children['"' + nameSeleccionado + '"'].getIntersections(pathPerimetro);
+  console.log(intersections.length);
   if (!btnRotar){
-    if (!AreaPerimetro(x, y , ancho, largo)) {
+    if (!AreaPerimetro(x, y , ancho, largo, angulo)) {
       mensaje.push('<div class="col-lg-11 col-md-11" id="borrarMsj">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>')
       respuesta = false
     }
@@ -1011,21 +1017,24 @@ $('#enterado').click(function () {
 
 function AreaPerimetro (x, y , ancho, largo) {
   var resultadoPerimetro = true
+  var cuentaValiPerimetro = 0 //Revisa que todo el elemento esta por fuera o por dentro del perimetro
   proporcion = (zoom) ? 1 : zoomProporcion // sin zoom y con zoom
-  for (var i = 0; i <= ancho; i++) {
-    if (!pathPerimetro.contains(new Point(x + (i * mts2), y)) || !pathPerimetro.contains(new Point(x + (i * mts2), y +  (largo * mts2)))) {
-      resultadoPerimetro = false
-      break
-    }
-  }
-  if (resultadoPerimetro) {
-    for (var i = 0; i <= largo; i++) {
-
-      if (!pathPerimetro.contains(new Point(x, y + (i * mts2))) || !pathPerimetro.contains(new Point(x  + (ancho * mts2) , y + (i * mts2)))) {
-        resultadoPerimetro = false
-        break
+  if (intersections.length == 0) {
+    for (var i = 0; i <= ancho; i++) {
+      if (!pathPerimetro.contains(new Point(x + (i * mts2), y)) || !pathPerimetro.contains(new Point(x + (i * mts2), y +  (largo * mts2)))) {
+        cuentaValiPerimetro++
       }
     }
+    for (var i = 0; i <= largo; i++) {
+      if (!pathPerimetro.contains(new Point(x, y + (i * mts2))) || !pathPerimetro.contains(new Point(x  + (ancho * mts2) , y + (i * mts2)))) {
+        cuentaValiPerimetro++
+      }
+    }
+    if (cuentaValiPerimetro >= (ancho + largo + 2)) {
+      resultadoPerimetro = false
+    }
+  } else {
+    resultadoPerimetro = false
   }
   return resultadoPerimetro
 }
