@@ -109,16 +109,6 @@
     <!-- finaliza -->
 
   </div>
-  <div class="container">
-    <div class="row col-sm-12 col-md-12">
-      <div class="col-sm-10 row col-md-10 barra-fecha" id="container-range">
-
-      </div>
-      <div class="col-sm-2 row col-md-2 barra-fecha">
-        <input id="fecha_caja" type="text" required="true" class="form-control col-sm-12 col-md-12 form-group">
-      </div>
-    </div>
-  </div>
 
   <?php
     include 'modal.html';
