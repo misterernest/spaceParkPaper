@@ -300,6 +300,10 @@ function zoomDo () {
   }
 }
 
+function desactivarBtn () {
+
+}
+
 // Funcion que activa y de descativa botones
 
 function accionesBtn () {
@@ -354,10 +358,12 @@ var lineaRotarTemp
 var elemento_x
 var elemento_y
 function onMouseDown (event) {
+  console.log('mouseDown');
+  console.log(event.point);
   if (pathPerimetro.contains(event.point)) {
-    posZoom = event
+    posZoom = event.point
     if (event.item && event.item.className == "Path") {
-      posZoom = event
+      posZoom = event.point
       if (event.item.name.slice(1, -1) == nameSeleccionado) {
         if (btnMover) {
           dragPermiso = true
@@ -379,7 +385,7 @@ function onMouseDown (event) {
       }
       nameSeleccionado = event.item.name.slice(1, -1)
     } else if (event.item && event.item.className == "PointText") {
-      posZoom = event
+      posZoom = event.point
       if (event.item.name.slice(4, -1) == nameSeleccionado) {
         if ( btnMover) {
           dragPermiso = true
@@ -410,15 +416,13 @@ function onMouseDown (event) {
         vaciaFormulario()
         $('#modal').modal('show')
       } else if (!zoom) {
-        zoomMapa(event)
+        zoomMapa(event.point)
       }
     }
     if (nameSeleccionado >= 0) {
       if (!btnActivo) {
         accionesBtn()
       }
-    } else {
-      accionesBtn()
     }
   } else {
     nameSeleccionado = -1
@@ -439,6 +443,7 @@ function onMouseDrag(event) {
     project.activeLayer.children['"' + nameSeleccionado + '"'].position += event.delta
     project.activeLayer.children['subpath' + nameSeleccionado + '"'].position += event.delta
     project.activeLayer.children['text' + nameSeleccionado + '"'].position += event.delta
+    console.log(project.activeLayer.children['"' + nameSeleccionado + '"'].position);
   } else if (btnActivo && dragRotar){
     rotar(event)
   }
@@ -450,7 +455,7 @@ function onMouseUp (event) {
     dragPermiso = false
     arrayElementosConsulta[nameSeleccionado].coordenada_x = (event.point.x * proporcion) - diferenciaPosX
     arrayElementosConsulta[nameSeleccionado].coordenada_y = (event.point.y * proporcion) - diferenciaPosy
-    zoomMapa(event)
+    zoomMapa(event.point)
   } else if (zoom && btnMover && dragPermiso) {
     dragPermiso = false
     arrayElementosConsulta[nameSeleccionado].coordenada_x = event.point.x - diferenciaPosX
@@ -530,7 +535,6 @@ function rotar (event) {
   arrayElementosConsulta[nameSeleccionado].angulo = Math.abs(gradosSeleccionado)
 
   intersections = project.activeLayer.children['"' + nameSeleccionado + '"'].getIntersections(pathPerimetro);
-  console.log(intersections)
 }
 //aqui voy
 function guardarRotar () {
@@ -581,14 +585,17 @@ function guardarRotar () {
 }
 // ////////UBICA COORDENADA EN EL ZOOM////////////////////////////////
 
-function zoomMapa (e) {
+function zoomMapa (punto) {
+  console.log('zoom mapa');
+  console.log(punto.x);
+  console.log(punto.y);
   var posX1 = 0
   var posY1 = 0
-  var posX1 = e.point.x/view.size.width;
-  var posY1 = e.point.y/view.size.height;
-  zoomDo();
-  var posX = ($('#canvas1').width() * posX1) - ($('#container-canvas').width() * 0.3) ;
-  var posY = ($('#canvas1').height() * posY1) - ($('#container-canvas').height() * 0.3);
+  var posX1 = punto.x/view.size.width;
+  var posY1 = punto.y/view.size.height;
+  zoomDo()
+  var posX = ($('#canvas1').width() * posX1) - ($('#container-canvas').width() * 0.3)
+  var posY = ($('#canvas1').height() * posY1) - ($('#container-canvas').height() * 0.3)
   $('#container-canvas').scrollLeft(posX);
   $('#container-canvas').scrollTop(posY);
 }
@@ -745,12 +752,12 @@ $('#actualiza-fecha').click(function () {
   }
 })
 $('#mover').click(function () {
-  if(btnActivo){
+  if(btnActivo) {
     if (!btnMover) {
       accionesBtn()
       accionesBtn()
       btnMover = true
-      if(zoom){
+      if(zoom) {
         zoomDo()
       }
       $("#mover").addClass('btn-seleccion')
@@ -763,6 +770,7 @@ $('#mover').click(function () {
     ventanaActualiza()
   }
 })
+var puntoZoom
 $('#rotar').click(function () {
   if (btnActivo) {
     if (!btnRotar) {
@@ -770,7 +778,8 @@ $('#rotar').click(function () {
       accionesBtn()
       btnRotar = true
       if (!zoom) {
-        zoomMapa(posZoom)
+        puntoZoom = new Point(arrayElementosConsulta[nameSeleccionado].coordenada_x * proporcion, arrayElementosConsulta[nameSeleccionado].coordenada_y * proporcion)
+        zoomMapa(puntoZoom)
       }
       $("#rotar").addClass('btn-seleccion')
     } else {
