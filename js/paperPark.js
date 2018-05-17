@@ -181,12 +181,12 @@ function pintaElementos () {
       })
       var pathSubTemp = new Path.Rectangle({
         point: [
-          (parseInt(arrayElementosConsulta[i].coordenada_x  * proporcion ) + 10 * proporcion),
-          (parseInt(arrayElementosConsulta[i].coordenada_y * proporcion ) + 10 * proporcion)
+          (parseInt(arrayElementosConsulta[i].coordenada_x  * proporcion ) + 15 * proporcion),
+          (parseInt(arrayElementosConsulta[i].coordenada_y * proporcion ) + 15 * proporcion)
         ],
         size: [
-          (parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2) - 20 * proporcion),
-          (parseInt(arrayElementosConsulta[i].largo_y * proporcion * mts2) - 20 * proporcion)
+          (parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2) - 30 * proporcion),
+          (parseInt(arrayElementosConsulta[i].largo_y * proporcion * mts2) - 30 * proporcion)
         ],
         visible: false,
         name: 'subpath' + i + '"',
@@ -450,8 +450,6 @@ function onMouseUp (event) {
   proporcion = (zoom) ? 1 : zoomProporcion // sin zoom y con zoom
   if (!zoom && btnMover && dragPermiso) {
     dragPermiso = false
-
-
     arrayElementosConsulta[nameSeleccionado].coordenada_x = (project.activeLayer.children['"' + nameSeleccionado + '"'].position.x - diferenciaPosX) / proporcion
     arrayElementosConsulta[nameSeleccionado].coordenada_y = (project.activeLayer.children['"' + nameSeleccionado + '"'].position.y - diferenciaPosy) / proporcion
     x = arrayElementosConsulta[nameSeleccionado].coordenada_x
@@ -462,6 +460,7 @@ function onMouseUp (event) {
     id = arrayElementosConsulta[nameSeleccionado].id
     zoomMapa(event.point)
     mueveElemento(x, y , ancho, largo, fechaSeleccionada, fechaFinalInArray, id, true)
+    pintaElementos()
   } else if (zoom && btnMover && dragPermiso) {
     dragPermiso = false
     arrayElementosConsulta[nameSeleccionado].coordenada_x = (project.activeLayer.children['"' + nameSeleccionado + '"'].position.x - diferenciaPosX)
