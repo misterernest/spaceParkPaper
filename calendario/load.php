@@ -4,7 +4,14 @@
 
 require_once('../config.php');
 $data = array();
-
+$colorCategoria = array(
+  'SAILING_YACHT' =>"rgb(180, 0, 0)", //RED
+  'MOTOR_YACHT' => "rgb(20, 170, 20)", //GREEN
+  'CAT' => "rgb(0, 0, 170)",//BLUE
+  'PESCA' => "rgb(190, 190, 0)",//YELLOW
+  'ELEMENTO' => "rgb(180, 0, 170)",//PURPLE
+  'TENDER' => "rgb(215,49,31)"//TOMATO
+);
 $query = "SELECT * FROM area_ocupada";
 
 
@@ -30,7 +37,8 @@ foreach($result as $row)
   'end'   => $row["fecha_final"],
   'endHora'   => $horaEnd,
   'categorias'   => $row["categoria"],
-  'comentario'   => $row["comentario"]
+  'comentario'   => $row["comentario"],
+	'color' => $colorCategoria[$row["categoria"]]
  );
 
 }

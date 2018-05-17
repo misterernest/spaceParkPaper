@@ -16,7 +16,6 @@ var perimetroName; // nombre del perimetro
 var tipoActualizacion = 0
 var nuevoElemento = false
 var coordenadaNuevoElemento = {x: 0, y: 0}
-var formularioBorrar = true
 
 // botones que inician en false para que primero elijan el elemento a mover
 var btnActivo = false
@@ -219,7 +218,7 @@ function pintaElementos () {
 }
 
 var idNuevo
-function pintaElementosTime (fecha1, fecha2) {
+function pintaElementosTime  (fecha1, fecha2) {
   arrayConsultaNombres = []
   var rotateElement
   var fechaInicialElemento = new Date()
@@ -411,7 +410,6 @@ function onMouseDown (event) {
         coordenadaNuevoElemento.x = puntoUbicado.x
         coordenadaNuevoElemento.y = puntoUbicado.y
         nuevoElemento = true
-        vaciaFormulario()
         $('#modal').modal('show')
       } else if (!zoom) {
         zoomMapa(event.point)
@@ -820,21 +818,18 @@ function ventanaActualiza () {
   }
 }
 
-function vaciaFormulario () {
-  if (formularioBorrar) {
-    $('#confirm1').modal('hide');
-    $('#anchoX').val('')
-    $('#largoY').val('');
-    $('#date').val('');
-    $('#date1').val('');
-    $('#time').val('');
-    $('#time1').val('');
-    $('#categoria').val('');
-    $('#cliente').val('');
-    $('#comentario').html('');
-  }
+function llenarFormularioNuevo () {
+  $('#confirm1').modal('hide');
+  $('#anchoX').val('')
+  $('#largoY').val('');
+  $('#date').val('');
+  $('#date1').val('');
+  $('#time').val('');
+  $('#time1').val('');
+  $('#categoria').val('');
+  $('#cliente').val('');
+  $('#comentario').html('');
 }
-
 // modal manejo de de guardar en el modal
 var mensaje = new Array();
 $('#guardar').click(function () {
@@ -885,14 +880,14 @@ $('#guardar').click(function () {
     var time2 = $('#time1').val();
     var categoria = $('#categoria').val();
     var cliente = $('#cliente').val();
-    var angulo = arrayElementosConsulta[nameSeleccionado].angulo
+    var angulo = (nameSeleccionado != -1)? arrayElementosConsulta[nameSeleccionado].angulo : 0
     var comentario = $('#comentario').val();
     if (nuevoElemento) {
       // guardarBaseDatos (x, y, ancho,largo, date1,date2,time1,time2, categoria, cliente, angulo, comentario)
       var x = coordenadaNuevoElemento.x
       var y = coordenadaNuevoElemento.y
       mensaje = [].slice()
-      if (revisaEspacio(x, y , ancho, largo, 0, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
+      if (revisaEspacio(x, y , ancho, largo, 0, date1, time1, date2, time2, -1)) { // revisa si interseca con otro elemento
         guardarBaseDatos(x, y, ancho, largo, date1, date2, time1, time2, categoria, cliente, angulo, comentario)
       }
     } else {
@@ -922,7 +917,6 @@ $('#guardar').click(function () {
     }
   } else {
     $('#modal').modal('show')
-    formularioBorrar = false
   }
 
 })
@@ -935,7 +929,9 @@ $('#cerrar').click(function(){
 });
 
 $('#confirm1').on('hidden.bs.modal', function () {
-  location.reload()
+  if (nuevoElemento) {
+    location.reload()
+  }
 });
 
 // Valida fecha la inicial se mayor a la final
@@ -980,8 +976,11 @@ function revisaEspacio (x, y , ancho, largo, angulo,date1, time1, date2, time2, 
       break;
     }
   }
-  intersections = project.activeLayer.children['"' + nameSeleccionado + '"'].getIntersections(pathPerimetro);
-  console.log(intersections.length);
+  if (nuevoElemento) {
+      intersections = project.activeLayer.children[idNuevo].getIntersections(pathPerimetro);
+  } else {
+    intersections = project.activeLayer.children['"' + nameSeleccionado + '"'].getIntersections(pathPerimetro);
+  }
   if (!btnRotar){
     if (!AreaPerimetro(x, y , ancho, largo, angulo)) {
       mensaje.push('<div class="col-lg-11 col-md-11" id="borrarMsj">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>')
@@ -1000,7 +999,6 @@ function revisaEspacio (x, y , ancho, largo, angulo,date1, time1, date2, time2, 
       $('#msj-alert').append('<div class="col-lg-11 col-md-11" id="borrarMsj" >' + mensaje[i] + '</div>')
     }
     $('#alert').modal('show')
-    formularioBorrar = false
     pintaElementos()
   }
   return respuesta
@@ -1277,7 +1275,7 @@ function actualizarBD (x, y, ancho, largo, date1, date2, time1, time2, categoria
 
 
 
-// /////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////// calendario
 var calendar = $('#calendar').fullCalendar({
  editable:true,
  header:{
