@@ -345,6 +345,7 @@ function modalPerimetro () {
 
 $('#enterado').click(function () {
   $('#alert').modal('hide')
+  $('#msj-alert').empty()
   accionesBtn()
   accionesBtn()
 })
@@ -522,6 +523,10 @@ function mueveElemento (x, y , ancho, largo, fechaSeleccionada, fechaFinalInArra
         location.reload()
       })
     }
+  } else {
+    $('#alert').on('hidden.bs.modal', function () {
+      location.reload()
+    })
   }
 }
 var gradosSeleccionado = 0
@@ -817,7 +822,7 @@ function ventanaActualiza () {
     $('#modal').modal('show')
   }
 }
-
+var mensaje = new Array();
 function llenarFormularioNuevo () {
   $('#confirm1').modal('hide');
   $('#anchoX').val('')
@@ -831,10 +836,12 @@ function llenarFormularioNuevo () {
   $('#comentario').html('');
 }
 // modal manejo de de guardar en el modal
-var mensaje = new Array();
 $('#guardar').click(function () {
-  var anchoCuadro = $('#anchoX').val();
-  var largoCuadro = $('#largoY').val();
+  $('#msj-alert').empty()
+  mensaje = []
+  console.log(mensaje);
+  var anchoCuadro = $('#anchoX').val()
+  var largoCuadro = $('#largoY').val()
   $('#msj-alert').text('');
   var valido = true;
   if (anchoCuadro == '' || largoCuadro == '' || anchoCuadro <= 0 || largoCuadro <= 0) {
@@ -928,11 +935,7 @@ $('#cerrar').click(function(){
   $('#confirm1').modal('hide');
 });
 
-$('#confirm1').on('hidden.bs.modal', function () {
-  if (nuevoElemento) {
-    location.reload()
-  }
-});
+$('#confirm1').on('hidden.bs.modal');
 
 // Valida fecha la inicial se mayor a la final
 function validaFecha (fecha1, fecha2) {
@@ -1003,12 +1006,10 @@ function revisaEspacio (x, y , ancho, largo, angulo,date1, time1, date2, time2, 
   }
   return respuesta
 }
-
 $('#enterado').click(function () {
   if(btnDeshacer) {
     $('#alert').modal('hide')
     $('#msj-alert').empty()
-    location.reload()
   }
 })
 
