@@ -418,14 +418,15 @@ function onMouseDown (event) {
       nameSeleccionado = event.item.name.slice(4, -1)
     } else {
       nameSeleccionado = -1
-      if (zoom) {
+      if (true) {
         var puntoUbicado = ubicaCoordenada(event.point)
         coordenadaNuevoElemento.x = puntoUbicado.x
         coordenadaNuevoElemento.y = puntoUbicado.y
         nuevoElemento = true
+        console.log(fechaSeleccionada)
+        $('#date').val(fechaSeleccionada.getFullYear() + '-' + (fechaSeleccionada.getMonth() + 1) + '-' + fechaSeleccionada.getDate());
+        //$('#time').val();
         $('#modal').modal('show')
-      } else if (!zoom) {
-        zoomMapa(event.point)
       }
     }
     if (nameSeleccionado >= 0) {
