@@ -423,7 +423,6 @@ function onMouseDown (event) {
         coordenadaNuevoElemento.x = puntoUbicado.x
         coordenadaNuevoElemento.y = puntoUbicado.y
         nuevoElemento = true
-        console.log(fechaSeleccionada)
         $('#date').val(fechaSeleccionada.getFullYear() + '-' + (fechaSeleccionada.getMonth() + 1) + '-' + fechaSeleccionada.getDate());
         //$('#time').val();
         $('#modal').modal('show')
