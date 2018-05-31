@@ -72,6 +72,8 @@ if (isset($_POST['id']) && !empty($_POST['id']) &&
 			$contraquery.="AND coordenada_y = $yPost ";
 			$contraquery.="AND fecha_incial = \'$date\' ";
 			$contraquery.="AND fecha_final = \'$date2 $time2\';";
+			$contraquery.="AND ancho_x = \'$ancho\';";
+			$contraquery.="AND largo_y = \'$largo\';";
 			// termina proceso cache Insert
 			//insert
 
@@ -89,7 +91,7 @@ if (isset($_POST['id']) && !empty($_POST['id']) &&
 				`comentario`,
 				`angulo`
 			) VALUES (
-				NULL, '$xPost', '$yPost', '$ancho', '$largo', '$date', '$date2 $time2', '$categoriaPost', '$clientePost', '$comentarioPost', '$anguloPost');";
+				NULL, '$xPost', '$yPost', '$anchoPost', '$largoPost', '$date', '$date2 $time2', '$categoriaPost', '$clientePost', '$comentarioPost', '$anguloPost');";
 			$prepared = $pdo->prepare($queryi);
 			$resulti = $prepared->execute();
 			$prepared = null;
@@ -143,7 +145,9 @@ if (isset($_POST['id']) && !empty($_POST['id']) &&
 		fecha_incial = \'$fechaI\',
 		cliente=\'$cliente\',
 		categoria=\'$categoria\',
-		comentario=\'$comentario\'
+		comentario=\'$comentario\',
+		ancho_x=\'$ancho\',
+		largo_y=\'$largo\'
 		WHERE id=$id;";
 		// termina proceso cache Update
 
@@ -152,7 +156,10 @@ if (isset($_POST['id']) && !empty($_POST['id']) &&
 		fecha_incial = '$date1 $time1',
 		cliente='$clientePost' ,
 		categoria='$categoriaPost',
-		comentario='$comentarioPost'
+		comentario='$comentarioPost',
+		ancho_x='$anchoPost',
+		largo_y='$largoPost'
+
 		WHERE id=$id ";
 		$prepared = $pdo->prepare($queryu);
 		$resultu = $prepared->execute();

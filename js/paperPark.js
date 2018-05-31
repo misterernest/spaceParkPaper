@@ -586,7 +586,7 @@ function guardarRotar () {
 
         $('#aceptar').click(function () {
           $('#confirm1').modal('hide')
-          actualizarBD (puntoTemp.x, puntoTemp.y, ancho, largo, date1, date2, time1, time2,categoria, cliente ,id, comentario, dateTimeSeleccionada, 1, angulo)
+          actualizarBD(puntoTemp.x, puntoTemp.y, ancho, largo, date1, date2, time1, time2,categoria, cliente ,id, comentario, dateTimeSeleccionada, 1, angulo)
         });
 
         $('#rechazar').click(function(){
@@ -850,7 +850,6 @@ function llenarFormularioNuevo () {
 $('#guardar').click(function () {
   $('#msj-alert').empty()
   mensaje = []
-  console.log(mensaje);
   var anchoCuadro = $('#anchoX').val()
   var largoCuadro = $('#largoY').val()
   $('#msj-alert').text('');
@@ -913,6 +912,7 @@ $('#guardar').click(function () {
       y = arrayElementosConsulta[nameSeleccionado].coordenada_y
       zoomDo()
       if (revisaEspacio(x, y , ancho, largo, angulo, date1, time1, date2, time2, id)) {
+        console.log(tipoActualizacion)
         var fechaRevisar = (fechaSeleccionada.getFullYear() + '-' + (fechaSeleccionada.getMonth() + 1) + '-' + fechaSeleccionada.getDate() + ' ' + fechaSeleccionada.getHours() + ':' + '00:00')
         actualizarBD(
           x,
