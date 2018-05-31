@@ -146,8 +146,9 @@ function organizaFecha (cadenaFecha) {
   var y4 = parseInt(cadenaFecha.slice(0, 4))
   var m2 = parseInt(cadenaFecha.slice(5, 7)) - 1
   var d2 = parseInt(cadenaFecha.slice(8, 10)) + 1
+  var h2 = parseInt(cadenaFecha.slice(11, 13))
   //var respuesta = new Date(y4, m2, d2, 23, 59, 59, 0)
-  var respuesta = new Date(y4, m2, d2)
+  var respuesta = new Date(y4, m2, d2, h2, 0, 0, 0)
   respuesta.setDate(respuesta.getDate() -1)
   return respuesta
 }
@@ -912,7 +913,6 @@ $('#guardar').click(function () {
       y = arrayElementosConsulta[nameSeleccionado].coordenada_y
       zoomDo()
       if (revisaEspacio(x, y , ancho, largo, angulo, date1, time1, date2, time2, id)) {
-        console.log(tipoActualizacion)
         var fechaRevisar = (fechaSeleccionada.getFullYear() + '-' + (fechaSeleccionada.getMonth() + 1) + '-' + fechaSeleccionada.getDate() + ' ' + fechaSeleccionada.getHours() + ':' + '00:00')
         actualizarBD(
           x,
