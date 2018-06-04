@@ -422,9 +422,14 @@ function onMouseDown (event) {
         var puntoUbicado = ubicaCoordenada(event.point)
         coordenadaNuevoElemento.x = puntoUbicado.x
         coordenadaNuevoElemento.y = puntoUbicado.y
+        if (!zoom) {
+          proporcion = (zoom) ? 1 : zoomProporcion // sin zoom y con zoom
+          coordenadaNuevoElemento.x = Math.floor(coordenadaNuevoElemento.x / proporcion)
+          coordenadaNuevoElemento.y = Math.floor(coordenadaNuevoElemento.y / proporcion)
+        }
         nuevoElemento = true
         $('#date').val(fechaSeleccionada.getFullYear() + '-' + (fechaSeleccionada.getMonth() + 1) + '-' + fechaSeleccionada.getDate());
-        //$('#time').val();
+        //$('#time').val(); // para colocar la hora indicada
         $('#modal').modal('show')
       }
     }
@@ -890,6 +895,7 @@ $('#guardar').click(function () {
   }
 
   if (valido) {
+    
     var ancho = $('#anchoX').val();
     var largo = $('#largoY').val();
     var date1 = $('#date').val();
@@ -969,6 +975,7 @@ function revisaEspacio (x, y , ancho, largo, angulo,date1, time1, date2, time2, 
       }
     }
   }
+  
   arrayElementosConsultaTemp.push({
     coordenada_x: x,
     coordenada_y: y,
@@ -991,9 +998,9 @@ function revisaEspacio (x, y , ancho, largo, angulo,date1, time1, date2, time2, 
     }
   }
   if (nuevoElemento) {
-      intersections = project.activeLayer.children[idNuevo].getIntersections(pathPerimetro);
+    intersections = project.activeLayer.children[idNuevo].getIntersections(pathPerimetro);
   } else {
-    intersections = project.activeLayer.children['"' + nameSeleccionado + '"'].getIntersections(pathPerimetro);
+    intersections = project.activeLayer.children[idNuevo].getIntersections(pathPerimetro)
   }
   if (!btnRotar){
     if (!AreaPerimetro(x, y , ancho, largo, angulo)) {

@@ -110,6 +110,17 @@
 
   </div>
 
+  <div class='container'>
+    <div class="row col-md-11">
+      <div class="col-md-7">
+        <input type="range">
+      </div>
+      <div class="col-md-4" id="fechaHoraSeleccionada">
+        <input>
+      </div>
+    </div>
+  </div>
+
   <?php
     include 'modal.html';
     include 'alert.html';
