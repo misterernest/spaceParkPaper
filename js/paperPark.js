@@ -37,9 +37,12 @@ var dd = hoy.getDate() // dia
 var mm = hoy.getMonth() + 1 // hoy es 0!
 var yyyy = hoy.getFullYear() // año
 var dias = new Array ('Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado');
+console.log(hoy.getHours())
+$('#horaActual').val(hoy.getHours() + ':00')
 // var hour = hoy.getHours() // hora
 // var min = 0 // minutos y segundos en ceros
 // var seg = 0
+//voy aquí debo terminar lo de la hora que cambie y me lo pinte
 var mesText = mesNumtext(mm)
 var mesActual = mesText
 var fechaSeleccionada = hoy
@@ -372,7 +375,8 @@ var lineaRotarTemp
 var elemento_x
 var elemento_y
 function onMouseDown (event) {
-  if (pathPerimetro.contains(event.point)) {
+  // if (pathPerimetro.contains(event.point)) {
+  if (true) {  
     posZoom = event.point
     if (event.item && event.item.className == "Path") {
       posZoom = event.point
@@ -438,10 +442,11 @@ function onMouseDown (event) {
         accionesBtn()
       }
     }
-  } else {
-    nameSeleccionado = -1
-    modalPerimetro()
   }
+  //  else {
+  //   nameSeleccionado = -1
+  //   modalPerimetro()
+  // }
 }
 var diferenciaPosX = 0
 var diferenciaPosy = 0

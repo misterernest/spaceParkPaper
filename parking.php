@@ -116,7 +116,7 @@
         <input type="range">
       </div>
       <div class="col-md-4" id="fechaHoraSeleccionada">
-        <input>
+        <input class="form-group" id="horaActual">
       </div>
     </div>
   </div>
