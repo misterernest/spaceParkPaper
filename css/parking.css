@@ -25,6 +25,7 @@ body{
   font-size: 1.3rem;
   padding: 3px
 }
+
 .info-popup>div{
   display: flex;
   justify-content: flex-start;
@@ -297,6 +298,10 @@ footer>div>img{
 .form-group{
   margin-bottom: 0 !important;
   font-size: 1.3rem !important;
+}
+.input-parking{
+  border: 0;
+  font-size: 3rem !important;
 }
 .caja-input{
   width: 100%;

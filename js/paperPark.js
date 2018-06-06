@@ -1,7 +1,7 @@
 // variables del programa para el funcionamiento de proporcion
 var mts2 = 12 // metros en px
-var width=2217 // tamaño del canvas
-var height=1598 // tamaño del canvas
+var width = 2217 // tamaño del canvas
+var height = 1598 // tamaño del canvas
 var zoomProporcion // delta de cambio del canvas
 var zoomWidth // tamaño del canvas sin zoom
 var zoomHeight // tamaño del canvas sin zoom
@@ -15,7 +15,7 @@ var cuadriculaID = 0
 var perimetroName; // nombre del perimetro
 var tipoActualizacion = 0
 var nuevoElemento = false
-var coordenadaNuevoElemento = {x: 0, y: 0}
+var coordenadaNuevoElemento = { x: 0, y: 0 }
 
 // botones que inician en false para que primero elijan el elemento a mover
 var btnActivo = false
@@ -32,13 +32,30 @@ var pathTempNuevo = new Path()
 var seleccionado = -1
 
 /* Variables de fecha actual para hacer la consulta incial */
+var fechaCompletaLocal = new Date()
+var fechaCompletaLocalArray = fechaCompletaLocal.toLocaleString().split(" ")
+var fechaLocal = fechaCompletaLocalArray[0].split("/")
+var horaLocal = fechaCompletaLocalArray[1].split(":")
+console.log(fechaLocal)
+console.log(horaLocal)
+
 var hoy = new Date() // la fecha actual para la consulta
-var dd = hoy.getDate() // dia
-var mm = hoy.getMonth() + 1 // hoy es 0!
+hoy.setUTCFullYear(parseInt(fechaLocal[2]))
+hoy.setUTCMonth(parseInt(fechaLocal[1]) - 1)
+hoy.setUTCDate(parseInt(fechaLocal[0]))
+hoy.setUTCHours(parseInt(horaLocal[0]))
+hoy.setUTCMinutes(0)
+hoy.setUTCSeconds(0)
+console.log(hoy)
+var dd = hoy.getUTCDate() // dia
+var mm = hoy.getMonth() // hoy es 0!
 var yyyy = hoy.getFullYear() // año
-var dias = new Array ('Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado');
-console.log(hoy.getHours())
-$('#horaActual').val(hoy.getHours() + ':00')
+var dias = new Array('Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado');
+$('#horaActual').val(hoy.getUTCHours() + ':00')
+$('#horaActualRange').val(hoy.getUTCHours())
+
+
+
 // var hour = hoy.getHours() // hora
 // var min = 0 // minutos y segundos en ceros
 // var seg = 0
@@ -46,10 +63,19 @@ $('#horaActual').val(hoy.getHours() + ':00')
 var mesText = mesNumtext(mm)
 var mesActual = mesText
 var fechaSeleccionada = hoy
-fechaSeleccionada.setMinutes(0)
-fechaSeleccionada.setSeconds(0)
-fechaSeleccionada.setMilliseconds(0)
+fechaSeleccionada.setUTCMinutes(0)
+fechaSeleccionada.setUTCSeconds(0)
+fechaSeleccionada.setUTCMilliseconds(0)
 consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
+
+$('#horaActualRange').mousedown(function () {
+  //$('#horaActual').val($('#horaActualRange').val())
+  $('#horaActualRange').mousemove(function () {
+    $('#horaActual').val($('#horaActualRange').val() + ':00')
+    fechaSeleccionada.setUTCHours($('#horaActualRange').val())
+    pintaElementos()
+  })
+})
 
 zoomProporcion = $('#container-canvas').width() / width // determina el factor de cambio tamaños
 zoomWidth = Math.round(width * zoomProporcion) // haya el ancho sin zoom
@@ -61,12 +87,12 @@ view.size.set(zoomWidth, zoomHeight) // tamaño sin zoom del canvas en paper
 
 //variables de colores según categoria
 var colorCategoria = {
-  SAILING_YACHT:"rgb(180, 0, 0)", //RED
-  MOTOR_YACHT:"rgb(20, 170, 20)", //GREEN
-  CAT:"rgb(0, 0, 170)",//BLUE
-  PESCA:"rgb(190, 190, 0)",//YELLOW
-  ELEMENTO:"rgb(180, 0, 170)",//PURPLE
-  TENDER:"rgb(215,49,31)"//TOMATO
+  SAILING_YACHT: "rgb(180, 0, 0)", //RED
+  MOTOR_YACHT: "rgb(20, 170, 20)", //GREEN
+  CAT: "rgb(0, 0, 170)",//BLUE
+  PESCA: "rgb(190, 190, 0)",//YELLOW
+  ELEMENTO: "rgb(180, 0, 170)",//PURPLE
+  TENDER: "rgb(215,49,31)"//TOMATO
 };
 
 // array de coordenadas dentro de la bodega
@@ -79,13 +105,13 @@ var limite = Array(
   [692, 373],
   [743, 378],
   [743, 349],
-  [743,180],
-  [948,180],
-  [948,180],
-  [948,277],
-  [872,277],
-  [872,349],
-  [743,349],
+  [743, 180],
+  [948, 180],
+  [948, 180],
+  [948, 277],
+  [872, 277],
+  [872, 349],
+  [743, 349],
   [743, 378],
   [1984, 482],
   [2121, 746],
@@ -110,7 +136,7 @@ var limite = Array(
 
 // ////////////////////////////// FUNCIONES DE PINTAR EN CANVAS
 perimetro() // llamada a la funcion que pinta el perimetro
-function perimetro () { // funcion que pinta el permietro y lo actualiza
+function perimetro() { // funcion que pinta el permietro y lo actualiza
   pathPerimetro.removeSegments()
   pathPerimetro.strokeColor = 'red'
   pathPerimetro.opacity = 0
@@ -127,7 +153,7 @@ function perimetro () { // funcion que pinta el permietro y lo actualiza
 
 creaCuadricula() // llamada inicial a la cuadricula del mapa
 
-function creaCuadricula () { // funcion que pinta la cuadricula
+function creaCuadricula() { // funcion que pinta la cuadricula
   CPathCuadricula.removeChildren() // remueve la cuadricula para ser pintada nuevamente
   CPathCuadricula.strokeColor = 'black' // color de la cuadricula
   CPathCuadricula.strokeWidth = 0.5 // ancho de la cuadricula
@@ -145,17 +171,23 @@ function creaCuadricula () { // funcion que pinta la cuadricula
 
 // funcion que pinta los elementos contenidos en arrayElementosConsulta
 
-function organizaFecha (cadenaFecha) {
+function organizaFecha(cadenaFecha) {
   var y4 = parseInt(cadenaFecha.slice(0, 4))
   var m2 = parseInt(cadenaFecha.slice(5, 7)) - 1
-  var d2 = parseInt(cadenaFecha.slice(8, 10)) + 1
+  var d2 = parseInt(cadenaFecha.slice(8, 10))
   var h2 = parseInt(cadenaFecha.slice(11, 13))
   //var respuesta = new Date(y4, m2, d2, 23, 59, 59, 0)
-  var respuesta = new Date(y4, m2, d2, h2, 0, 0, 0)
-  respuesta.setDate(respuesta.getDate() -1)
+  var respuesta = new Date()
+  respuesta.setUTCFullYear(y4)
+  respuesta.setUTCMonth(m2)
+  respuesta.setUTCDate(d2)
+  respuesta.setUTCHours(h2)
+  respuesta.setUTCMinutes(0)
+  respuesta.setUTCSeconds(0)
+  //respuesta.setUTCDate(respuesta.getDate() - 1)
   return respuesta
 }
-function pintaElementos () {
+function pintaElementos() {
   project.activeLayer.removeChildren(2)
   proporcion = (zoom) ? 1 : zoomProporcion
   var fechaInicialArray = new Date()
@@ -171,14 +203,14 @@ function pintaElementos () {
     if (fechaInicialArray <= fechaSeleccionada && fechaFinalArray > fechaSeleccionada) {
       fontSize = arrayElementosConsulta[i].ancho_x * proporcion * mts2 / 20
       rotateElement = arrayElementosConsulta[i].angulo
-      if(parseInt(arrayElementosConsulta[i].ancho_x) < parseInt(arrayElementosConsulta[i].largo_y)) {
+      if (parseInt(arrayElementosConsulta[i].ancho_x) < parseInt(arrayElementosConsulta[i].largo_y)) {
         rotacion = 90
         fontSize = arrayElementosConsulta[i].largo_y * proporcion * mts2 / 5
       }
       var pathTemp = new Path.Rectangle({
         point: [
-          parseInt(arrayElementosConsulta[i].coordenada_x * proporcion ),
-          parseInt(arrayElementosConsulta[i].coordenada_y * proporcion )
+          parseInt(arrayElementosConsulta[i].coordenada_x * proporcion),
+          parseInt(arrayElementosConsulta[i].coordenada_y * proporcion)
         ],
         size: [
           parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2),
@@ -190,13 +222,13 @@ function pintaElementos () {
         rotation: rotateElement,
         data: {
           seleccionado: false,
-          id:arrayElementosConsulta[i]
+          id: arrayElementosConsulta[i]
         }
       })
       var pathSubTemp = new Path.Rectangle({
         point: [
-          (parseInt(arrayElementosConsulta[i].coordenada_x  * proporcion ) + 15 * proporcion),
-          (parseInt(arrayElementosConsulta[i].coordenada_y * proporcion ) + 15 * proporcion)
+          (parseInt(arrayElementosConsulta[i].coordenada_x * proporcion) + 15 * proporcion),
+          (parseInt(arrayElementosConsulta[i].coordenada_y * proporcion) + 15 * proporcion)
         ],
         size: [
           (parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2) - 30 * proporcion),
@@ -208,8 +240,8 @@ function pintaElementos () {
       });
       var textTemp = new PointText({
         point: [
-          parseInt(arrayElementosConsulta[i].coordenada_x * proporcion ),
-          parseInt(arrayElementosConsulta[i].coordenada_y * proporcion )
+          parseInt(arrayElementosConsulta[i].coordenada_x * proporcion),
+          parseInt(arrayElementosConsulta[i].coordenada_y * proporcion)
         ],
         content: arrayElementosConsulta[i].cliente,
         fillColor: 'white',
@@ -233,7 +265,7 @@ function pintaElementos () {
 }
 
 var idNuevo
-function pintaElementosTime  (fecha1, fecha2) {
+function pintaElementosTime(fecha1, fecha2) {
   arrayConsultaNombres = []
   var rotateElement
   var fechaInicialElemento = new Date()
@@ -284,7 +316,7 @@ $('#zoom').click(function () {
   zoomDo()
 })
 
-function zoomDo () {
+function zoomDo() {
   if (zoom) {
     zoom = false
     $('#calendar').removeAttr('hidden', 'hidden')
@@ -312,17 +344,17 @@ function zoomDo () {
     view.size.set(width, height) // cambio de tamaño del canvas en paper
     creaCuadricula()
     perimetro()
-    pintaElementos ()
+    pintaElementos()
   }
 }
 
-function desactivarBtn () {
+function desactivarBtn() {
 
 }
 
 // Funcion que activa y de descativa botones
 
-function accionesBtn () {
+function accionesBtn() {
   if (btnActivo) {
     btnActivo = false // bandera para saber si esta seleccionado un elemento
     btnMover = false // boton mover
@@ -333,7 +365,7 @@ function accionesBtn () {
     $("#mover").addClass('btn-inactivo')
     $("#actualiza-fecha").addClass('btn-inactivo')
     $("#eliminar").addClass('btn-inactivo')
-  }else {
+  } else {
     // reinicia los botones
     btnActivo = true
     btnMover = false // boton mover
@@ -349,7 +381,7 @@ function accionesBtn () {
   }
 }
 // modal
-function modalPerimetro () {
+function modalPerimetro() {
   $('#modal').modal('hide')
   $('#myAlertLabel').text('ADVERTENCIA')
   $('#msj-alert').text('')
@@ -374,9 +406,9 @@ var posZoom = new Point()
 var lineaRotarTemp
 var elemento_x
 var elemento_y
-function onMouseDown (event) {
+function onMouseDown(event) {
   // if (pathPerimetro.contains(event.point)) {
-  if (true) {  
+  if (true) {
     posZoom = event.point
     if (event.item && event.item.className == "Path") {
       posZoom = event.point
@@ -402,10 +434,10 @@ function onMouseDown (event) {
     } else if (event.item && event.item.className == "PointText") {
       posZoom = event.point
       if (event.item.name.slice(4, -1) == nameSeleccionado) {
-        if ( btnMover) {
+        if (btnMover) {
           dragPermiso = true
           diferenciaEventRectangle(event)
-        }else if (btnRotar) {
+        } else if (btnRotar) {
           project.activeLayer.children['"' + nameSeleccionado + '"'].rotation = -parseInt(arrayElementosConsulta[nameSeleccionado].angulo)
           project.activeLayer.children['subpath' + nameSeleccionado + '"'].rotation = -parseInt(arrayElementosConsulta[nameSeleccionado].angulo)
           project.activeLayer.children['text' + nameSeleccionado + '"'].visible = false
@@ -415,7 +447,7 @@ function onMouseDown (event) {
           anguloIncialRotar = vectorTempRotar.angle
           dragRotar = true
         }
-      }else{
+      } else {
         accionesBtn()
         accionesBtn()
       }
@@ -450,7 +482,7 @@ function onMouseDown (event) {
 }
 var diferenciaPosX = 0
 var diferenciaPosy = 0
-function diferenciaEventRectangle (event) {
+function diferenciaEventRectangle(event) {
   proporcion = (zoom) ? 1 : zoomProporcion // sin zoom y con zoom
   diferenciaPosX = arrayElementosConsulta[nameSeleccionado].ancho_x * mts2 * proporcion / 2
   diferenciaPosy = arrayElementosConsulta[nameSeleccionado].largo_y * mts2 * proporcion / 2
@@ -462,12 +494,12 @@ function onMouseDrag(event) {
     project.activeLayer.children['"' + nameSeleccionado + '"'].position += event.delta
     project.activeLayer.children['subpath' + nameSeleccionado + '"'].position += event.delta
     project.activeLayer.children['text' + nameSeleccionado + '"'].position += event.delta
-  } else if (btnActivo && dragRotar){
+  } else if (btnActivo && dragRotar) {
     rotar(event)
   }
 }
 
-function onMouseUp (event) {
+function onMouseUp(event) {
   proporcion = (zoom) ? 1 : zoomProporcion // sin zoom y con zoom
   if (!zoom && btnMover && dragPermiso) {
     dragPermiso = false
@@ -480,7 +512,7 @@ function onMouseUp (event) {
     fechaFinalInArray = arrayElementosConsulta[nameSeleccionado].fecha_final
     id = arrayElementosConsulta[nameSeleccionado].id
     zoomMapa(event.point)
-    mueveElemento(x, y , ancho, largo, fechaSeleccionada, fechaFinalInArray, id, true)
+    mueveElemento(x, y, ancho, largo, fechaSeleccionada, fechaFinalInArray, id, true)
     pintaElementos()
   } else if (zoom && btnMover && dragPermiso) {
     dragPermiso = false
@@ -492,11 +524,11 @@ function onMouseUp (event) {
     largo = arrayElementosConsulta[nameSeleccionado].largo_y
     fechaFinalInArray = arrayElementosConsulta[nameSeleccionado].fecha_final
     id = arrayElementosConsulta[nameSeleccionado].id
-    mueveElemento(x, y , ancho, largo, fechaSeleccionada, fechaFinalInArray, id, false)
+    mueveElemento(x, y, ancho, largo, fechaSeleccionada, fechaFinalInArray, id, false)
   } else if (btnRotar && btnActivo) {
     dragPermiso = false
     guardarRotar()
-    if (anguloIncialRotar < 0 ) {
+    if (anguloIncialRotar < 0) {
       gradosSeleccionado += Math.abs(anguloIncialRotar) + parseInt(arrayElementosConsulta[nameSeleccionado].angulo)
     } else {
       gradosSeleccionado -= anguloIncialRotar + parseInt(arrayElementosConsulta[nameSeleccionado].angulo)
@@ -504,7 +536,7 @@ function onMouseUp (event) {
     arrayElementosConsulta[nameSeleccionado].angulo = gradosSeleccionado
   }
 }
-function mueveElemento (x, y , ancho, largo, fechaSeleccionada, fechaFinalInArray, id, primerPaso) {
+function mueveElemento(x, y, ancho, largo, fechaSeleccionada, fechaFinalInArray, id, primerPaso) {
   var puntoTemp = new Point({
     x: x,
     y: y
@@ -521,7 +553,7 @@ function mueveElemento (x, y , ancho, largo, fechaSeleccionada, fechaFinalInArra
   cliente = arrayElementosConsulta[nameSeleccionado].cliente
   comentario = arrayElementosConsulta[nameSeleccionado].comentario
   angulo = arrayElementosConsulta[nameSeleccionado].angulo
-  if (revisaEspacio(puntoTemp.x, puntoTemp.y , ancho, largo, angulo, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
+  if (revisaEspacio(puntoTemp.x, puntoTemp.y, ancho, largo, angulo, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
     if (btnActivo && btnMover && !primerPaso) {
       $('#myConfirm1Label').text('PREGUNTA')
       $('#msj-confirm1').text('')
@@ -530,7 +562,7 @@ function mueveElemento (x, y , ancho, largo, fechaSeleccionada, fechaFinalInArra
 
       $('#aceptar').click(function () {
         $('#confirm1').modal('hide')
-        actualizarBD(puntoTemp.x, puntoTemp.y, ancho, largo, date1, date2, time1, time2,categoria, cliente ,id, comentario, dateTimeSeleccionada, 1, angulo)
+        actualizarBD(puntoTemp.x, puntoTemp.y, ancho, largo, date1, date2, time1, time2, categoria, cliente, id, comentario, dateTimeSeleccionada, 1, angulo)
       });
 
       $('#rechazar').click(function () {
@@ -555,7 +587,7 @@ var gradosSeleccionado = 0
 var anguloIncialRotar = 0
 var vectorTempRotar
 var intersections
-function rotar (event) {
+function rotar(event) {
   vectorTempRotar = event.point - new Point(elemento_x, elemento_y)
   project.activeLayer.children['"' + nameSeleccionado + '"'].rotation = -gradosSeleccionado
   project.activeLayer.children['subpath' + nameSeleccionado + '"'].rotation = -gradosSeleccionado
@@ -568,7 +600,7 @@ function rotar (event) {
 
 }
 //aqui voy
-function guardarRotar () {
+function guardarRotar() {
   var puntoTemp = new Point({
     x: arrayElementosConsulta[nameSeleccionado].coordenada_x,
     y: arrayElementosConsulta[nameSeleccionado].coordenada_y
@@ -588,39 +620,39 @@ function guardarRotar () {
   ancho = arrayElementosConsulta[nameSeleccionado].ancho_x
   largo = arrayElementosConsulta[nameSeleccionado].largo_y
   angulo = gradosSeleccionado
-  if (revisaEspacio(puntoTemp.x, puntoTemp.y , ancho, largo, angulo, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
-      if (btnActivo && btnRotar) {
-        $('#myConfirm1Label').text('PREGUNTA')
-        $('#msj-confirm1').text('')
-        $('#msj-confirm1').append('<div class="col-lg-11 col-md-11">Desea mover elemento a la nueva ubicación</div>');
-        $('#confirm1').modal('show')
+  if (revisaEspacio(puntoTemp.x, puntoTemp.y, ancho, largo, angulo, date1, time1, date2, time2, id)) { // revisa si interseca con otro elemento
+    if (btnActivo && btnRotar) {
+      $('#myConfirm1Label').text('PREGUNTA')
+      $('#msj-confirm1').text('')
+      $('#msj-confirm1').append('<div class="col-lg-11 col-md-11">Desea mover elemento a la nueva ubicación</div>');
+      $('#confirm1').modal('show')
 
-        $('#aceptar').click(function () {
-          $('#confirm1').modal('hide')
-          actualizarBD(puntoTemp.x, puntoTemp.y, ancho, largo, date1, date2, time1, time2,categoria, cliente ,id, comentario, dateTimeSeleccionada, 1, angulo)
-        });
+      $('#aceptar').click(function () {
+        $('#confirm1').modal('hide')
+        actualizarBD(puntoTemp.x, puntoTemp.y, ancho, largo, date1, date2, time1, time2, categoria, cliente, id, comentario, dateTimeSeleccionada, 1, angulo)
+      });
 
-        $('#rechazar').click(function(){
-          $('#confirm1').modal('hide')
-          location.reload()
-        });
-        $('#cerrar').click(function(){
-          $('#confirm1').modal('hide')
-          location.reload()
-        });
-        $('#confirm1').on('hidden.bs.modal', function () {
-          location.reload()
-        })
-      }
+      $('#rechazar').click(function () {
+        $('#confirm1').modal('hide')
+        location.reload()
+      });
+      $('#cerrar').click(function () {
+        $('#confirm1').modal('hide')
+        location.reload()
+      });
+      $('#confirm1').on('hidden.bs.modal', function () {
+        location.reload()
+      })
+    }
   }
 }
 // ////////UBICA COORDENADA EN EL ZOOM////////////////////////////////
 
-function zoomMapa (punto) {
+function zoomMapa(punto) {
   var posX1 = 0
   var posY1 = 0
-  var posX1 = punto.x/view.size.width;
-  var posY1 = punto.y/view.size.height;
+  var posX1 = punto.x / view.size.width;
+  var posY1 = punto.y / view.size.height;
   zoomDo()
   var posX = ($('#canvas1').width() * posX1) - ($('#container-canvas').width() * 0.3)
   var posY = ($('#canvas1').height() * posY1) - ($('#container-canvas').height() * 0.3)
@@ -630,17 +662,17 @@ function zoomMapa (punto) {
 
 // ////////EFECTO DEL MOUSE AL PASAR SOBRE ELEMENTO// /////////////////////////////////
 var nameEventMove
-function limpiaSombra () {
+function limpiaSombra() {
   project.activeLayer.style.shadowOffset = new Point(0, 0)
   project.activeLayer.style.shadowColor = 'black'
   project.activeLayer.style.shadowBlur = 0
 }
-function onMouseMove (event) {
+function onMouseMove(event) {
   limpiaSombra()
   if (event.item && event.item != CPathCuadricula && event.item != pathPerimetro) {
     if (event.item.className == "Path") {
       nameEventMove = event.item.name.slice(1, -1)
-    }else if (event.item.className == "PointText") {
+    } else if (event.item.className == "PointText") {
       nameEventMove = event.item.name.slice(4, -1)
     }
     popupElement(event.item) // muestra la ventana emergente con la información del evento
@@ -659,7 +691,7 @@ function onMouseMove (event) {
 
 // funcion encargada de mostrar la informacion en el lado derecho de la pantalla
 // del elemento con el cual se esta haciendo el hover
-function popupElement (elementItem) {
+function popupElement(elementItem) {
   var pos;
   if (elementItem.className == 'Path') {
     pos = elementItem.name.slice(1, -1)
@@ -679,9 +711,9 @@ function popupElement (elementItem) {
   var dateA = new Date();
   var dateB = new Date();
   dateA.setTime(Date.parse(arrayElementosConsulta[i].fecha_incial));
-  var mes1 = mesNumtext(dateA.getMonth()+1);
+  var mes1 = mesNumtext(dateA.getMonth() + 1);
   dateB.setTime(Date.parse(arrayElementosConsulta[i].fecha_final));
-  var mes2 = mesNumtext(dateB.getMonth()+1);
+  var mes2 = mesNumtext(dateB.getMonth() + 1);
   $('#info-fecha').text(
     dias[dateA.getDay()]
     + ' '
@@ -714,12 +746,12 @@ $('#eliminar').click(function () {
       eliminarElementoBD(arrayElementosConsulta[nameSeleccionado].id);
     });
 
-    $('#rechazar').click(function(){
+    $('#rechazar').click(function () {
       $('#confirm1').modal('hide')
       accionesBtn()
       accionesBtn()
     });
-    $('#cerrar').click(function(){
+    $('#cerrar').click(function () {
       $('#confirm1').modal('hide')
       accionesBtn()
       accionesBtn()
@@ -729,7 +761,7 @@ $('#eliminar').click(function () {
 })
 
 //eliminarElementoBD("1");
-function eliminarElementoBD (id) {
+function eliminarElementoBD(id) {
   // Convertir a objeto
   var data = {}
   data.id = id
@@ -757,7 +789,7 @@ function eliminarElementoBD (id) {
         $('#alert').modal('show');
       }
     },
-    error: function(jqXHR, textStatus, errorThrown) {
+    error: function (jqXHR, textStatus, errorThrown) {
       $('#myAlertLabel').text('ERROR')
       $('#msj-alert').text('')
       $('#msj-alert').append('<div class="col-lg-11 col-md-11">ERROR ' + textStatus + ' - ' + errorThrown + '</div>')
@@ -771,7 +803,7 @@ function eliminarElementoBD (id) {
 
 // /////////////////////FUNCION ACTUALIZAR ////////////////////////////
 $('#actualiza-fecha').click(function () {
-  if(btnActivo){
+  if (btnActivo) {
     accionesBtn()
     accionesBtn()
     btnActualizarDatos = true
@@ -780,12 +812,12 @@ $('#actualiza-fecha').click(function () {
   }
 })
 $('#mover').click(function () {
-  if(btnActivo) {
+  if (btnActivo) {
     if (!btnMover) {
       accionesBtn()
       accionesBtn()
       btnMover = true
-      if(zoom) {
+      if (zoom) {
         zoomDo()
       }
       $("#mover").addClass('btn-seleccion')
@@ -825,7 +857,7 @@ $('#rotar').click(function () {
 var id = -1
 var x
 var y // coordenada para manejar lo elementos sleccionados
-function ventanaActualiza () {
+function ventanaActualiza() {
   if (btnActualizarDatos) {
     $('#confirm1').modal('hide');
     $('#anchoX').val(arrayElementosConsulta[nameSeleccionado].ancho_x)
@@ -845,7 +877,7 @@ function ventanaActualiza () {
   }
 }
 var mensaje = new Array();
-function llenarFormularioNuevo () {
+function llenarFormularioNuevo() {
   $('#confirm1').modal('hide');
   $('#anchoX').val('')
   $('#largoY').val('');
@@ -895,12 +927,12 @@ $('#guardar').click(function () {
       $('#msj-alert').append('<div class="col-lg-11 col-md-11">' + mensaje[i] + '</div>')
     }
     $('#alert').modal('show');
-  }else if (valido) {
+  } else if (valido) {
     $('#modal').modal('hide');
   }
 
   if (valido) {
-    
+
     var ancho = $('#anchoX').val();
     var largo = $('#largoY').val();
     var date1 = $('#date').val();
@@ -909,21 +941,21 @@ $('#guardar').click(function () {
     var time2 = $('#time1').val();
     var categoria = $('#categoria').val();
     var cliente = $('#cliente').val();
-    var angulo = (nameSeleccionado != -1)? arrayElementosConsulta[nameSeleccionado].angulo : 0
+    var angulo = (nameSeleccionado != -1) ? arrayElementosConsulta[nameSeleccionado].angulo : 0
     var comentario = $('#comentario').val();
     if (nuevoElemento) {
       // guardarBaseDatos (x, y, ancho,largo, date1,date2,time1,time2, categoria, cliente, angulo, comentario)
       var x = coordenadaNuevoElemento.x
       var y = coordenadaNuevoElemento.y
       mensaje = [].slice()
-      if (revisaEspacio(x, y , ancho, largo, 0, date1, time1, date2, time2, -1)) { // revisa si interseca con otro elemento
+      if (revisaEspacio(x, y, ancho, largo, 0, date1, time1, date2, time2, -1)) { // revisa si interseca con otro elemento
         guardarBaseDatos(x, y, ancho, largo, date1, date2, time1, time2, categoria, cliente, angulo, comentario)
       }
     } else {
       x = arrayElementosConsulta[nameSeleccionado].coordenada_x
       y = arrayElementosConsulta[nameSeleccionado].coordenada_y
       zoomDo()
-      if (revisaEspacio(x, y , ancho, largo, angulo, date1, time1, date2, time2, id)) {
+      if (revisaEspacio(x, y, ancho, largo, angulo, date1, time1, date2, time2, id)) {
         var fechaRevisar = (fechaSeleccionada.getFullYear() + '-' + (fechaSeleccionada.getMonth() + 1) + '-' + fechaSeleccionada.getDate() + ' ' + fechaSeleccionada.getHours() + ':' + '00:00')
         actualizarBD(
           x,
@@ -950,17 +982,17 @@ $('#guardar').click(function () {
 
 })
 
-$('#rechazar').click(function(){
+$('#rechazar').click(function () {
   $('#confirm1').modal('hide');
 });
-$('#cerrar').click(function(){
+$('#cerrar').click(function () {
   $('#confirm1').modal('hide');
 });
 
 $('#confirm1').on('hidden.bs.modal');
 
 // Valida fecha la inicial se mayor a la final
-function validaFecha (fecha1, fecha2) {
+function validaFecha(fecha1, fecha2) {
   var f1 = new Date();
   var f2 = new Date();
   f1.setTime(Date.parse(fecha1));
@@ -969,10 +1001,10 @@ function validaFecha (fecha1, fecha2) {
 }
 
 // //inicio funcion para revisar si el espacio esta ocupando
-function revisaEspacio (x, y , ancho, largo, angulo,date1, time1, date2, time2, id) {
+function revisaEspacio(x, y, ancho, largo, angulo, date1, time1, date2, time2, id) {
   var respuesta = true
   arrayElementosConsultaTemp = arrayElementosConsulta.slice()
-  if (id >=0) {
+  if (id >= 0) {
     for (var i = 0; i < arrayElementosConsultaTemp.length; i++) {
       if (arrayElementosConsultaTemp[i].id == id) { //quita el item para que no se compare con el mismo
         arrayElementosConsultaTemp.splice(i, 1)
@@ -980,7 +1012,7 @@ function revisaEspacio (x, y , ancho, largo, angulo,date1, time1, date2, time2, 
       }
     }
   }
-  
+
   arrayElementosConsultaTemp.push({
     coordenada_x: x,
     coordenada_y: y,
@@ -993,32 +1025,32 @@ function revisaEspacio (x, y , ancho, largo, angulo,date1, time1, date2, time2, 
   pintaElementosTime(date1 + " " + time1, date2 + " " + time2) // dibuja todos los elementos en el tiempo para comprobar si se topa con el nuevo elemento
   mensaje = [].slice()
 
-  for (var i = 0; i < arrayConsultaNombres.length-1; i++) {
+  for (var i = 0; i < arrayConsultaNombres.length - 1; i++) {
     var nombre = arrayConsultaNombres[i]
     if (project.activeLayer.children[nombre].bounds.intersects(project.activeLayer.children[idNuevo].bounds)) {
       respuesta = false
-      mensaje.push('<div class="col-lg-11 col-md-11">Espacio ocupado desde el '+ project.activeLayer.children[nombre].data.fechaIni + ' al '+ project.activeLayer.children[nombre].data.fechaFin + '</div>')
+      mensaje.push('<div class="col-lg-11 col-md-11">Espacio ocupado desde el ' + project.activeLayer.children[nombre].data.fechaIni + ' al ' + project.activeLayer.children[nombre].data.fechaFin + '</div>')
       arrayConsultaNombres = []
       break;
     }
   }
-  if (nuevoElemento) {
-    intersections = project.activeLayer.children[idNuevo].getIntersections(pathPerimetro);
-  } else {
-    intersections = project.activeLayer.children[idNuevo].getIntersections(pathPerimetro)
-  }
-  if (!btnRotar){
-    if (!AreaPerimetro(x, y , ancho, largo, angulo)) {
-      mensaje.push('<div class="col-lg-11 col-md-11" id="borrarMsj">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>')
-      respuesta = false
-    }
+  // if (nuevoElemento) {
+  //   intersections = project.activeLayer.children[idNuevo].getIntersections(pathPerimetro);
+  // } else {
+  //   intersections = project.activeLayer.children[idNuevo].getIntersections(pathPerimetro)
+  // }
+  // if (!btnRotar){
+  //   if (!AreaPerimetro(x, y , ancho, largo, angulo)) {
+  //     mensaje.push('<div class="col-lg-11 col-md-11" id="borrarMsj">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>')
+  //     respuesta = false
+  //   }
 
-  } else {
-    if (intersections.length > 0) {
-      mensaje.push('<div class="col-lg-11 col-md-11" id="borrarMsj">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>')
-      respuesta = false
-    }
-  }
+  // } else {
+  //   if (intersections.length > 0) {
+  //     mensaje.push('<div class="col-lg-11 col-md-11" id="borrarMsj">Área no permitida seleccione una nueva ubicación dentro de las intalaciones</div>')
+  //     respuesta = false
+  //   }
+  // }
   if (!respuesta) {
     $('#myAlertLabel').text('ADVERTENCIA')
     for (var i = 0; i < mensaje.length; i++) {
@@ -1030,24 +1062,24 @@ function revisaEspacio (x, y , ancho, largo, angulo,date1, time1, date2, time2, 
   return respuesta
 }
 $('#enterado').click(function () {
-  if(btnDeshacer) {
+  if (btnDeshacer) {
     $('#alert').modal('hide')
     $('#msj-alert').empty()
   }
 })
 
-function AreaPerimetro (x, y , ancho, largo) {
+function AreaPerimetro(x, y, ancho, largo) {
   var resultadoPerimetro = true
   var cuentaValiPerimetro = 0 //Revisa que todo el elemento esta por fuera o por dentro del perimetro
   proporcion = (zoom) ? 1 : zoomProporcion // sin zoom y con zoom
   if (intersections.length == 0) {
     for (var i = 0; i <= ancho; i++) {
-      if (!pathPerimetro.contains(new Point(x + (i * mts2), y)) || !pathPerimetro.contains(new Point(x + (i * mts2), y +  (largo * mts2)))) {
+      if (!pathPerimetro.contains(new Point(x + (i * mts2), y)) || !pathPerimetro.contains(new Point(x + (i * mts2), y + (largo * mts2)))) {
         cuentaValiPerimetro++
       }
     }
     for (var i = 0; i <= largo; i++) {
-      if (!pathPerimetro.contains(new Point(x, y + (i * mts2))) || !pathPerimetro.contains(new Point(x  + (ancho * mts2) , y + (i * mts2)))) {
+      if (!pathPerimetro.contains(new Point(x, y + (i * mts2))) || !pathPerimetro.contains(new Point(x + (ancho * mts2), y + (i * mts2)))) {
         cuentaValiPerimetro++
       }
     }
@@ -1064,7 +1096,7 @@ function AreaPerimetro (x, y , ancho, largo) {
 // //////////// FIN FUNCION ACTUALIZAR /////////
 
 /* organiza el punto para que ubique la coordenada correspondiente con un cuadro */
-function ubicaCoordenada (puntoCoordenada) {
+function ubicaCoordenada(puntoCoordenada) {
   var pos1 = puntoCoordenada.x
   var pos2 = puntoCoordenada.y
   puntoCoordenada.x = Math.floor(pos1 / mts2) * mts2
@@ -1075,7 +1107,7 @@ function ubicaCoordenada (puntoCoordenada) {
 /*
 mesNumtext convierte el numero del mes en texto
 */
-function mesNumtext (num) {
+function mesNumtext(num) {
   var mesText = ''
   switch (num) {
     case 1:
@@ -1135,30 +1167,30 @@ function mesNumtext (num) {
 // //////////////////////////// FUNCIONES DESHACER
 
 // cambia de estado el boton deshacer si hay elementos para deshacer en cola
-function activaBtnDeshacer () {
+function activaBtnDeshacer() {
   if (cantDeshacer > 0) {
-    btnDeshacer=true;
+    btnDeshacer = true;
     $('#deshacer').removeClass('btn-inactivo');
-}
+  }
 }
 
 $('#deshacer').click(function () {
-  if(btnDeshacer) {
+  if (btnDeshacer) {
     deshacerAjax()
   }
 })
 
-function deshacerAjax () {
+function deshacerAjax() {
   // Convertir a objeto
   var url = 'deshacer.php' // este es el PHP al que se llama por AJAX
   $.ajax({
     method: 'POST',
     url: url,
-    success: function(response) {
+    success: function (response) {
       // resultado es un array que indica exitoso o no.
       location.reload()
     },
-    error: function ( jqXHR, textStatus, errorThrown ) {
+    error: function (jqXHR, textStatus, errorThrown) {
       $('#myAlertLabel').text('ERROR')
       $('#msj-alert').text('')
       $('#msj-alert').append('<div class="col-lg-11 col-md-11">ERROR ' + textStatus + ' - ' + errorThrown + '</div>')
@@ -1169,7 +1201,7 @@ function deshacerAjax () {
 // //////////////////////////// FUNCIONES AJAX
 
 /* Consulta la base de datos por meses */
-function consultarBaseDatos (date) {
+function consultarBaseDatos(date) {
   // Convertir a objeto
   var data = {}
 
@@ -1191,14 +1223,14 @@ function consultarBaseDatos (date) {
       arrayElementosConsulta = response[0]
       pintaElementos()
     },
-    dataType:'json'
+    dataType: 'json'
   })
 }
 
 // funcion AJAX para guardar en bd
 // AJAX Guardar Formulario
 
-function guardarBaseDatos (x, y, ancho,largo, date1,date2,time1,time2, categoria, cliente, angulo, comentario) {
+function guardarBaseDatos(x, y, ancho, largo, date1, date2, time1, time2, categoria, cliente, angulo, comentario) {
   // Convertir a objeto
   var data = {};
   data.x = x;
@@ -1228,7 +1260,7 @@ function guardarBaseDatos (x, y, ancho,largo, date1,date2,time1,time2, categoria
         $('#enterado').click(function () {
           location.reload()
         })
-      }else{
+      } else {
         $('#myAlertLabel').text('MENSAJE')
         $('#modal').modal('hide')
         $('#msj-alert').text('')
@@ -1246,8 +1278,8 @@ function guardarBaseDatos (x, y, ancho,largo, date1,date2,time1,time2, categoria
 }
 
 // actualizarBD(600,150, 9, '2018-03-20 02:53:00')
-function actualizarBD (x, y, ancho, largo, date1, date2, time1, time2, categoria, cliente, id, comentario, date, typeUpdate, angulo) {
-// Convertir a objeto
+function actualizarBD(x, y, ancho, largo, date1, date2, time1, time2, categoria, cliente, id, comentario, date, typeUpdate, angulo) {
+  // Convertir a objeto
   var data = {}
 
   data.date = date
@@ -1301,112 +1333,110 @@ function actualizarBD (x, y, ancho, largo, date1, date2, time1, time2, categoria
 
 // ///////////////////////////////////////////////////////////////////// calendario
 var calendar = $('#calendar').fullCalendar({
- editable:true,
- header:{
-  left:'prev,next today',
-  center:'title',
-  right:'month,agendaWeek'
- },
- firstDay: 1,
+  editable: true,
+  header: {
+    left: 'prev,next today',
+    center: 'title',
+    right: 'month,agendaWeek'
+  },
+  firstDay: 1,
   monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
   monthNamesShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
   dayNames: ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sábado'],
   dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'],
   buttonText:
-           {
-               prev:     ' ◄ ',
-               next:     ' ► ',
-               prevYear: ' &lt;&lt; ',
-               nextYear: ' &gt;&gt; ',
-               today:    'hoy',
-               month:    'mes',
-               week:     'semana',
-               day:      'día'
-           },
- events: 'calendario/load.php',
- selectable:true,
- selectHelper:true,
- select: function(start, end, allDay)
- {
-   var fechaActual = new Date(start._d);
-   fechaSeleccionada.setFullYear(fechaActual.getFullYear())
-   fechaSeleccionada.setMonth(fechaActual.getMonth())
-   fechaSeleccionada.setDate(fechaActual.getDate() + 1)
-   pintaElementos()
+    {
+      prev: ' ◄ ',
+      next: ' ► ',
+      prevYear: ' &lt;&lt; ',
+      nextYear: ' &gt;&gt; ',
+      today: 'hoy',
+      month: 'mes',
+      week: 'semana',
+      day: 'día'
+    },
+  events: 'calendario/load.php',
+  selectable: true,
+  selectHelper: true,
+  select: function (start, end, allDay) {
+    var fechaActual = new Date(start._d);
+    fechaSeleccionada.setUTCFullYear(fechaActual.getFullYear())
+    fechaSeleccionada.setUTCMonth(fechaActual.getMonth())
+    fechaSeleccionada.setUTCDate(fechaActual.getDate() + 1)
+    pintaElementos()
 
- },
- editable:false,
-eventClick:function(event)
- {
-   var id = event.id;
-   var fechaStart = new Date(event.start);
-   var fechaEnd = new Date(event.end);
-   $('#largoY_1').val(event.largo);
-   $('#anchoX_1').val(event.ancho);
-   $('#cliente_1').val(event.title);
-   $('#categoria_1').val(event.categorias);
-   $('#date_1').val(fechaStart.getFullYear() + '-' + (fechaStart.getMonth()+1) + '-' + (fechaStart.getDate()+1));
-   $('#time_1').val(event.startHora);
-   $('#date1_1').val(fechaEnd.getFullYear() + '-' + (fechaEnd.getMonth()+1) + '-' + (fechaEnd.getDate()));
-   $('#time1_1').val(event.endHora);
-   $('#comentario_1').html(event.comentario);
+  },
+  editable: false,
+  eventClick: function (event) {
+    var id = event.id;
+    var fechaStart = new Date(event.start);
+    var fechaEnd = new Date(event.end);
+    $('#largoY_1').val(event.largo);
+    $('#anchoX_1').val(event.ancho);
+    $('#cliente_1').val(event.title);
+    $('#categoria_1').val(event.categorias);
+    $('#date_1').val(fechaStart.getFullYear() + '-' + (fechaStart.getMonth() + 1) + '-' + (fechaStart.getDate() + 1));
+    $('#time_1').val(event.startHora);
+    $('#date1_1').val(fechaEnd.getFullYear() + '-' + (fechaEnd.getMonth() + 1) + '-' + (fechaEnd.getDate()));
+    $('#time1_1').val(event.endHora);
+    $('#comentario_1').html(event.comentario);
 
-   $('#largoY_1').prop('readonly', true);
-   $('#anchoX_1').prop('readonly', true);
-   $('#date_1').prop('readonly', true);
-   $('#time_1').prop('readonly', true);
-   $('#date1_1').prop('readonly', true);
-   $('#time1_1').prop('readonly', true);
+    $('#largoY_1').prop('readonly', true);
+    $('#anchoX_1').prop('readonly', true);
+    $('#date_1').prop('readonly', true);
+    $('#time_1').prop('readonly', true);
+    $('#date1_1').prop('readonly', true);
+    $('#time1_1').prop('readonly', true);
 
-   $('#modal_1').modal('show');
-   $('#guardar_1').click(function(){
-       $('#modal_1').modal('hide');
-     actualizarCalBD(
-       event.id,
-       $('#categoria_1').val(),
-       $('#cliente_1').val(),
-       $('#comentario_1').val()
-       );
+    $('#modal_1').modal('show');
+    $('#guardar_1').click(function () {
+      $('#modal_1').modal('hide');
+      actualizarCalBD(
+        event.id,
+        $('#categoria_1').val(),
+        $('#cliente_1').val(),
+        $('#comentario_1').val()
+      );
 
-   });
- }
+    });
+  }
 });
 // });
 
-function actualizarCalBD (id, categoria, cliente , comentario){
-// Convertir a objeto
-var data = {};
+function actualizarCalBD(id, categoria, cliente, comentario) {
+  // Convertir a objeto
+  var data = {};
 
-data.id = id;
-data.categoria = categoria;
-data.cliente = cliente;
-data.comentario = comentario;
-var url = 'calendario/update.php';   //este es el PHP al que se llama por AJAX
+  data.id = id;
+  data.categoria = categoria;
+  data.cliente = cliente;
+  data.comentario = comentario;
+  var url = 'calendario/update.php';   //este es el PHP al que se llama por AJAX
 
-resultado = new Array();
+  resultado = new Array();
   $.ajax({
     method: 'POST',
     url: url,
     data: data,   //acá están todos los parámetros (valores a enviar) del POST
-    success: function(response){
+    success: function (response) {
       // resultado es un array que indica exitoso o no.
 
-      if(response == "1"){
+      if (response == "1") {
         $('#myAlertLabel').text("ACTUALIZACION")
         $('#msj-alert').text('');
         $('#msj-alert').append('<div class="col-lg-11 col-md-11">Datos actualizados correctamente</div>')
         $('#alert').modal('show');
-      }else{
+      } else {
         $('#myAlertLabel').text("ERROR")
         $('#msj-alert').text('');
         $('#msj-alert').append('<div class="col-lg-11 col-md-11">No se pudo actualizar los Datos error al en base de datos</div>')
         $('#alert').modal('show');
       }
-      $("#enterado").click(function(){
+      $("#enterado").click(function () {
         location.reload();
       });
     },
-    error: function( jqXHR, textStatus, errorThrown ) {
+    error: function (jqXHR, textStatus, errorThrown) {
       $('#myAlertLabel').text("ERROR")
       $('#msj-alert').text('');
       $('#msj-alert').append('<div class="col-lg-11 col-md-11">ERROR ${textStatus} - ${jqXHR} - ${errorThrown}</div>')

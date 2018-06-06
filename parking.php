@@ -113,10 +113,10 @@
   <div class='container'>
     <div class="row col-md-11">
       <div class="col-md-7">
-        <input type="range">
+        <input type="range" id="horaActualRange" min="0" max="23">
       </div>
       <div class="col-md-4" id="fechaHoraSeleccionada">
-        <input class="form-group" id="horaActual">
+        <input class="form-group input-parking" id="horaActual">
       </div>
     </div>
   </div>
