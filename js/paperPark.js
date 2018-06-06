@@ -36,8 +36,6 @@ var fechaCompletaLocal = new Date()
 var fechaCompletaLocalArray = fechaCompletaLocal.toLocaleString().split(" ")
 var fechaLocal = fechaCompletaLocalArray[0].split("/")
 var horaLocal = fechaCompletaLocalArray[1].split(":")
-console.log(fechaLocal)
-console.log(horaLocal)
 
 var hoy = new Date() // la fecha actual para la consulta
 hoy.setUTCFullYear(parseInt(fechaLocal[2]))
@@ -46,7 +44,6 @@ hoy.setUTCDate(parseInt(fechaLocal[0]))
 hoy.setUTCHours(parseInt(horaLocal[0]))
 hoy.setUTCMinutes(0)
 hoy.setUTCSeconds(0)
-console.log(hoy)
 var dd = hoy.getUTCDate() // dia
 var mm = hoy.getMonth() // hoy es 0!
 var yyyy = hoy.getFullYear() // año
@@ -567,19 +564,25 @@ function mueveElemento(x, y, ancho, largo, fechaSeleccionada, fechaFinalInArray,
 
       $('#rechazar').click(function () {
         $('#confirm1').modal('hide')
-        location.reload()
+        //location.reload()
+        consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
+        zoom = true
+        zoomDo()
       });
       $('#cerrar').click(function () {
         $('#confirm1').modal('hide')
-        location.reload()
+        //location.reload()
+        consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
       });
       $('#confirm1').on('hidden.bs.modal', function () {
-        location.reload()
+        //location.reload()
+        consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
       })
     }
   } else {
     $('#alert').on('hidden.bs.modal', function () {
-      location.reload()
+      //location.reload()
+      consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
     })
   }
 }
@@ -780,7 +783,10 @@ function eliminarElementoBD(id) {
         $('#msj-alert').append('<div class="col-lg-11 col-md-11">Elemento eliminado correctamente</div>')
         $('#alert').modal('show')
         $('#enterado').click(function () {
-          location.reload()
+          //location.reload()
+          zoom = true
+          zoomDo()
+          consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
         })
       } else {
         $('#myAlertLabel').text('ADVERTENCIA')
@@ -1188,7 +1194,10 @@ function deshacerAjax() {
     url: url,
     success: function (response) {
       // resultado es un array que indica exitoso o no.
-      location.reload()
+      //location.reload()
+      zoom = true
+      zoomDo()
+      consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
     },
     error: function (jqXHR, textStatus, errorThrown) {
       $('#myAlertLabel').text('ERROR')
@@ -1258,7 +1267,10 @@ function guardarBaseDatos(x, y, ancho, largo, date1, date2, time1, time2, catego
         $('#msj-alert').append('<div class="col-lg-11 col-md-11">Espacio asignado correctamente </div>')
         $('#alert').modal('show')
         $('#enterado').click(function () {
-          location.reload()
+          //location.reload()
+          zoom = true
+          zoomDo()
+          consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
         })
       } else {
         $('#myAlertLabel').text('MENSAJE')
@@ -1317,7 +1329,10 @@ function actualizarBD(x, y, ancho, largo, date1, date2, time1, time2, categoria,
         $('#alert').modal('show')
       }
       $("#enterado").click(function () {
-        location.reload()
+        //location.reload()
+        zoom = true
+        zoomDo()
+        consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
       })
     },
     error: function (jqXHR, textStatus, errorThrown) {
