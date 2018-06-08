@@ -48,7 +48,7 @@ var dd = hoy.getUTCDate() // dia
 var mm = hoy.getMonth() // hoy es 0!
 var yyyy = hoy.getFullYear() // año
 var dias = new Array('Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado');
-$('#horaActual').val(hoy.getUTCHours() + ':00')
+$('#horaActual').val(hoy.getUTCHours() + ':00' + " / " + dias[hoy.getDay()] + " " +  hoy.getUTCDate() + " de " + mesNumtext(hoy.getUTCMonth() + 1) + " del " + hoy.getUTCFullYear())
 $('#horaActualRange').val(hoy.getUTCHours())
 
 
@@ -68,7 +68,7 @@ consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
 $('#horaActualRange').mousedown(function () {
   //$('#horaActual').val($('#horaActualRange').val())
   $('#horaActualRange').mousemove(function () {
-    $('#horaActual').val($('#horaActualRange').val() + ':00')
+    $('#horaActual').val($('#horaActualRange').val() + ':00' + " / " + dias[fechaSeleccionada.getUTCDay()] + " " +  fechaSeleccionada.getUTCDate() + " de " + mesNumtext(fechaSeleccionada.getUTCMonth() + 1) + " del " + fechaSeleccionada.getUTCFullYear())
     fechaSeleccionada.setUTCHours($('#horaActualRange').val())
     pintaElementos()
   })
@@ -609,11 +609,12 @@ function guardarRotar() {
     y: arrayElementosConsulta[nameSeleccionado].coordenada_y
   })
   id = arrayElementosConsulta[nameSeleccionado].id
-  dateTime1 = new Date(Date.parse(arrayElementosConsulta[nameSeleccionado].fecha_incial))
+  
+  //dateTime1 = new Date(Date.parse(arrayElementosConsulta[nameSeleccionado].fecha_incial))
   fechaFinalInArray = arrayElementosConsulta[nameSeleccionado].fecha_final
   dateTime2 = new Date(Date.parse(fechaFinalInArray))
-  var date1 = dateTime1.getFullYear() + "-" + (dateTime1.getMonth() + 1) + "-" + dateTime1.getDate()
-  var time1 = dateTime1.getHours() + ":" + "00:00"
+  var date1 = fechaSeleccionada.getFullYear() + "-" + (fechaSeleccionada.getMonth() + 1) + "-" + fechaSeleccionada.getDate()
+  var time1 = fechaSeleccionada.getHours() + ":" + "00:00"
   var date2 = dateTime2.getFullYear() + "-" + (dateTime2.getMonth() + 1) + "-" + dateTime2.getDate()
   var time2 = dateTime2.getHours() + ":" + dateTime2.getMinutes() + ":00"
   dateTimeSeleccionada = fechaSeleccionada.getFullYear() + "-" + (fechaSeleccionada.getMonth() + 1) + "-" + fechaSeleccionada.getDate() + " " + fechaSeleccionada.getHours() + ":" + "00:00"
@@ -644,7 +645,10 @@ function guardarRotar() {
         location.reload()
       });
       $('#confirm1').on('hidden.bs.modal', function () {
-        location.reload()
+        //location.reload()
+        zoom = true
+        zoomDo()
+        consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
       })
     }
   }
@@ -1378,6 +1382,7 @@ var calendar = $('#calendar').fullCalendar({
     fechaSeleccionada.setUTCFullYear(fechaActual.getFullYear())
     fechaSeleccionada.setUTCMonth(fechaActual.getMonth())
     fechaSeleccionada.setUTCDate(fechaActual.getDate() + 1)
+    $('#horaActual').val($('#horaActualRange').val() + ':00' + " / " + dias[fechaSeleccionada.getUTCDay()] + " " +  fechaSeleccionada.getUTCDate() + " de " + mesNumtext(fechaSeleccionada.getUTCMonth() + 1) + " del " + fechaSeleccionada.getUTCFullYear())
     pintaElementos()
 
   },
