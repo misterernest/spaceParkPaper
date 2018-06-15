@@ -34,6 +34,7 @@ var seleccionado = -1
 /* Variables de fecha actual para hacer la consulta incial */
 var fechaCompletaLocal = new Date()
 var fechaCompletaLocalArray = fechaCompletaLocal.toLocaleString().split(" ")
+
 var fechaLocal = fechaCompletaLocalArray[0].split("/")
 var horaLocal = fechaCompletaLocalArray[1].split(":")
 
@@ -41,7 +42,15 @@ var hoy = new Date() // la fecha actual para la consulta
 hoy.setUTCFullYear(parseInt(fechaLocal[2]))
 hoy.setUTCMonth(parseInt(fechaLocal[1]) - 1)
 hoy.setUTCDate(parseInt(fechaLocal[0]))
-hoy.setUTCHours(parseInt(horaLocal[0]))
+if (typeof fechaCompletaLocalArray[2] != 'undefined') {
+  if (fechaCompletaLocalArray[2].charAt(0) == 'p') {
+    hoy.setUTCHours(parseInt(horaLocal[0]) + 12)
+  } else if (fechaCompletaLocalArray[2].charAt(0) == 'a') {
+    hoy.setUTCHours(parseInt(horaLocal[0]))
+  }
+} else {
+  hoy.setUTCHours(parseInt(horaLocal[0]))
+}
 hoy.setUTCMinutes(0)
 hoy.setUTCSeconds(0)
 var dd = hoy.getUTCDate() // dia
@@ -198,7 +207,7 @@ function pintaElementos() {
     fechaInicialArray = organizaFecha(arrayElementosConsulta[i].fecha_incial)
     fechaFinalArray = organizaFecha(arrayElementosConsulta[i].fecha_final)
     if (fechaInicialArray <= fechaSeleccionada && fechaFinalArray > fechaSeleccionada) {
-      fontSize = arrayElementosConsulta[i].ancho_x * proporcion * mts2 / 20
+      fontSize = arrayElementosConsulta[i].ancho_x * proporcion * mts2
       rotateElement = arrayElementosConsulta[i].angulo
       if (parseInt(arrayElementosConsulta[i].ancho_x) < parseInt(arrayElementosConsulta[i].largo_y)) {
         rotacion = 90
@@ -224,12 +233,12 @@ function pintaElementos() {
       })
       var pathSubTemp = new Path.Rectangle({
         point: [
-          (parseInt(arrayElementosConsulta[i].coordenada_x * proporcion) + 15 * proporcion),
-          (parseInt(arrayElementosConsulta[i].coordenada_y * proporcion) + 15 * proporcion)
+          (parseInt(arrayElementosConsulta[i].coordenada_x * proporcion) + 1 * proporcion),
+          (parseInt(arrayElementosConsulta[i].coordenada_y * proporcion) + 1 * proporcion)
         ],
         size: [
-          (parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2) - 30 * proporcion),
-          (parseInt(arrayElementosConsulta[i].largo_y * proporcion * mts2) - 30 * proporcion)
+          (parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2) - 2 * proporcion),
+          (parseInt(arrayElementosConsulta[i].largo_y * proporcion * mts2) - 2 * proporcion)
         ],
         visible: false,
         name: 'subpath' + i + '"',
@@ -545,7 +554,7 @@ function mueveElemento(x, y, ancho, largo, fechaSeleccionada, fechaFinalInArray,
   var time1 = dateTime1.getHours() + ":" + "00:00"
   var date2 = dateTime2.getFullYear() + "-" + (dateTime2.getMonth() + 1) + "-" + dateTime2.getDate()
   var time2 = dateTime2.getHours() + ":" + dateTime2.getMinutes() + ":00"
-  dateTimeSeleccionada = fechaSeleccionada.getFullYear() + "-" + (fechaSeleccionada.getMonth() + 1) + "-" + fechaSeleccionada.getDate() + " " + fechaSeleccionada.getHours() + ":" + "00:00"
+  dateTimeSeleccionada = fechaSeleccionada.getUTCFullYear() + "-" + (fechaSeleccionada.getUTCMonth() + 1) + "-" + fechaSeleccionada.getUTCDate() + " " + fechaSeleccionada.getUTCHours() + ":" + "00:00"
   categoria = arrayElementosConsulta[nameSeleccionado].categoria
   cliente = arrayElementosConsulta[nameSeleccionado].cliente
   comentario = arrayElementosConsulta[nameSeleccionado].comentario
@@ -568,21 +577,25 @@ function mueveElemento(x, y, ancho, largo, fechaSeleccionada, fechaFinalInArray,
         consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
         zoom = true
         zoomDo()
+        reloadCalendar()
       });
       $('#cerrar').click(function () {
         $('#confirm1').modal('hide')
         //location.reload()
         consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
+        reloadCalendar()
       });
       $('#confirm1').on('hidden.bs.modal', function () {
         //location.reload()
         consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
+        reloadCalendar()
       })
     }
   } else {
     $('#alert').on('hidden.bs.modal', function () {
       //location.reload()
       consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
+      reloadCalendar()
     })
   }
 }
@@ -617,7 +630,7 @@ function guardarRotar() {
   var time1 = fechaSeleccionada.getHours() + ":" + "00:00"
   var date2 = dateTime2.getFullYear() + "-" + (dateTime2.getMonth() + 1) + "-" + dateTime2.getDate()
   var time2 = dateTime2.getHours() + ":" + dateTime2.getMinutes() + ":00"
-  dateTimeSeleccionada = fechaSeleccionada.getFullYear() + "-" + (fechaSeleccionada.getMonth() + 1) + "-" + fechaSeleccionada.getDate() + " " + fechaSeleccionada.getHours() + ":" + "00:00"
+  dateTimeSeleccionada = fechaSeleccionada.getFullYear() + "-" + (fechaSeleccionada.getUTCMonth() + 1) + "-" + fechaSeleccionada.getUTCDate() + " " + fechaSeleccionada.getUTCHours() + ":" + "00:00"
   categoria = arrayElementosConsulta[nameSeleccionado].categoria
   cliente = arrayElementosConsulta[nameSeleccionado].cliente
   comentario = arrayElementosConsulta[nameSeleccionado].comentario
@@ -649,6 +662,7 @@ function guardarRotar() {
         zoom = true
         zoomDo()
         consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
+        reloadCalendar()
       })
     }
   }
@@ -791,6 +805,7 @@ function eliminarElementoBD(id) {
           zoom = true
           zoomDo()
           consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
+          reloadCalendar()
         })
       } else {
         $('#myAlertLabel').text('ADVERTENCIA')
@@ -966,7 +981,7 @@ $('#guardar').click(function () {
       y = arrayElementosConsulta[nameSeleccionado].coordenada_y
       zoomDo()
       if (revisaEspacio(x, y, ancho, largo, angulo, date1, time1, date2, time2, id)) {
-        var fechaRevisar = (fechaSeleccionada.getFullYear() + '-' + (fechaSeleccionada.getMonth() + 1) + '-' + fechaSeleccionada.getDate() + ' ' + fechaSeleccionada.getHours() + ':' + '00:00')
+        var fechaRevisar = (fechaSeleccionada.getUTCFullYear() + '-' + (fechaSeleccionada.getUTCMonth() + 1) + '-' + fechaSeleccionada.getUTCDate() + ' ' + fechaSeleccionada.getUTCHours() + ':' + '00:00')
         actualizarBD(
           x,
           y,
@@ -1202,6 +1217,7 @@ function deshacerAjax() {
       zoom = true
       zoomDo()
       consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
+      reloadCalendar()
     },
     error: function (jqXHR, textStatus, errorThrown) {
       $('#myAlertLabel').text('ERROR')
@@ -1275,6 +1291,7 @@ function guardarBaseDatos(x, y, ancho, largo, date1, date2, time1, time2, catego
           zoom = true
           zoomDo()
           consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
+          reloadCalendar()
         })
       } else {
         $('#myAlertLabel').text('MENSAJE')
@@ -1337,6 +1354,7 @@ function actualizarBD(x, y, ancho, largo, date1, date2, time1, time2, categoria,
         zoom = true
         zoomDo()
         consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
+        reloadCalendar()
       })
     },
     error: function (jqXHR, textStatus, errorThrown) {
@@ -1349,7 +1367,9 @@ function actualizarBD(x, y, ancho, largo, date1, date2, time1, time2, categoria,
 }
 
 
-
+function reloadCalendar () {
+  calendar.fullCalendar( 'refetchEvents')
+}
 // ///////////////////////////////////////////////////////////////////// calendario
 var calendar = $('#calendar').fullCalendar({
   editable: true,
