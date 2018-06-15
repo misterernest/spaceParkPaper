@@ -71,8 +71,8 @@ if (isset($_POST['id']) && !empty($_POST['id']) &&
 			$contraquery.="WHERE coordenada_x =$xPost ";
 			$contraquery.="AND coordenada_y = $yPost ";
 			$contraquery.="AND fecha_incial = \'$date\' ";
-			$contraquery.="AND fecha_final = \'$date2 $time2\';";
-			$contraquery.="AND ancho_x = \'$ancho\';";
+			$contraquery.="AND fecha_final = \'$date2 $time2\' ";
+			$contraquery.="AND ancho_x = \'$ancho\' ";
 			$contraquery.="AND largo_y = \'$largo\';";
 			// termina proceso cache Insert
 			//insert
