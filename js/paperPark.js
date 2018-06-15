@@ -46,7 +46,11 @@ if (typeof fechaCompletaLocalArray[2] != 'undefined') {
   if (fechaCompletaLocalArray[2].charAt(0) == 'p') {
     hoy.setUTCHours(parseInt(horaLocal[0]) + 12)
   } else if (fechaCompletaLocalArray[2].charAt(0) == 'a') {
-    hoy.setUTCHours(parseInt(horaLocal[0]))
+    if (parseInt(horaLocal[0]) == 12) {
+      hoy.setUTCHours(parseInt(horaLocal[0]) - 12)
+    } else {
+      hoy.setUTCHours(parseInt(horaLocal[0]))
+    }
   }
 } else {
   hoy.setUTCHours(parseInt(horaLocal[0]))
