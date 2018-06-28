@@ -38,6 +38,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.min.js"></script>
 </head>
 <body>
+  <div class="btn-park btn-all-day" id="allDay">
+    <img src="img/icon-hora.png" alt="Mostrar todo el dia">
+  </div>
   <div class="btn-park btn-lupa1" id="zoom">
     <img src="img/lupa-mas.png" alt="lupa-zoom-in" id="zoom-in">
     <img src="img/lupa-menos.png" alt="lupa-zoom-out" id="zoom-out" hidden="hidden">

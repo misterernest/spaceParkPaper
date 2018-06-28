@@ -84,7 +84,9 @@ $('#horaActualRange').mousedown(function () {
   $('#horaActualRange').mousemove(function () {
     $('#horaActual').val($('#horaActualRange').val() + ':00' + " / " + dias[fechaSeleccionada.getDay()] + " " + fechaSeleccionada.getDate() + " de " + mesNumtext(fechaSeleccionada.getMonth() + 1) + " del " + fechaSeleccionada.getFullYear())
     fechaSeleccionada.setHours($('#horaActualRange').val())
-    pintaElementos()
+    if (!btnAllDay) {
+      pintaElementos()
+    }
   })
 })
 
@@ -284,6 +286,92 @@ function pintaElementos() {
   }
 }
 
+function pintaElementosPorDia() {
+  project.activeLayer.removeChildren(2)
+  proporcion = (zoom) ? 1 : zoomProporcion
+  var fechaInicialArray = new Date()
+  var fechaFinalArray = new Date()
+  var fechaSeleccionadaInicial = new Date(fechaSeleccionada.getFullYear(), fechaSeleccionada.getMonth(), fechaSeleccionada.getDate(), 0, 0, 0)
+  var fechaSeleccionadaFinal = new Date()
+  fechaSeleccionadaFinal = fechaSeleccionada
+  fechaSeleccionadaFinal.setHours(23)
+
+  var rotateElement = 0
+  for (var i = 0; i < arrayElementosConsulta.length; i++) {
+    var rotacion = 0
+    var fontSize = 14
+    arrayElementosConsulta[i].coordenada_x = parseInt(arrayElementosConsulta[i].coordenada_x)
+    arrayElementosConsulta[i].coordenada_y = parseInt(arrayElementosConsulta[i].coordenada_y)
+    fechaInicialArray = organizaFecha(arrayElementosConsulta[i].fecha_incial)
+    fechaFinalArray = organizaFecha(arrayElementosConsulta[i].fecha_final)
+    if (
+      (fechaSeleccionadaInicial < fechaInicialArray && fechaSeleccionadaFinal > fechaInicialArray) ||
+      (fechaSeleccionadaFinal > fechaInicialArray && fechaSeleccionadaFinal <= fechaFinalArray) ||
+      (fechaSeleccionadaInicial >= fechaInicialArray && fechaSeleccionadaInicial < fechaFinalArray)
+    ) {
+      fontSize = arrayElementosConsulta[i].ancho_x * proporcion * mts2
+      rotateElement = arrayElementosConsulta[i].angulo
+      if (parseInt(arrayElementosConsulta[i].ancho_x) < parseInt(arrayElementosConsulta[i].largo_y)) {
+        rotacion = 90
+        fontSize = arrayElementosConsulta[i].largo_y * proporcion * mts2 / 5
+      }
+      var pathTemp = new Path.Rectangle({
+        point: [
+          parseInt(arrayElementosConsulta[i].coordenada_x * proporcion),
+          parseInt(arrayElementosConsulta[i].coordenada_y * proporcion)
+        ],
+        size: [
+          parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2),
+          parseInt(arrayElementosConsulta[i].largo_y * proporcion * mts2)
+        ],
+        fillColor: colorCategoria[arrayElementosConsulta[i].categoria],
+        strokeWidth: 0,
+        name: '"' + i + '"',
+        rotation: rotateElement,
+        data: {
+          seleccionado: false,
+          id: arrayElementosConsulta[i]
+        }
+      })
+      var pathSubTemp = new Path.Rectangle({
+        point: [
+          (parseInt(arrayElementosConsulta[i].coordenada_x * proporcion) + 1 * proporcion),
+          (parseInt(arrayElementosConsulta[i].coordenada_y * proporcion) + 1 * proporcion)
+        ],
+        size: [
+          (parseInt(arrayElementosConsulta[i].ancho_x * proporcion * mts2) - 2 * proporcion),
+          (parseInt(arrayElementosConsulta[i].largo_y * proporcion * mts2) - 2 * proporcion)
+        ],
+        visible: false,
+        name: 'subpath' + i + '"',
+        rotation: rotateElement
+      });
+      var textTemp = new PointText({
+        point: [
+          parseInt(arrayElementosConsulta[i].coordenada_x * proporcion),
+          parseInt(arrayElementosConsulta[i].coordenada_y * proporcion)
+        ],
+        content: arrayElementosConsulta[i].cliente,
+        fillColor: 'white',
+        fontFamily: 'Courier New',
+        fontWeight: 'bold',
+        name: 'text' + i + '"',
+        fontSize: fontSize,
+        rotation: rotateElement
+      })
+      textTemp.rotate(rotacion, pathTemp.point);
+      textTemp.fitBounds(pathSubTemp.bounds)
+      if (i == nameSeleccionado) {
+        var posXActual = pathTemp.position.x
+        var posYActual = pathTemp.position.y
+        pathTemp.shadowOffset = new Point(3, 3)
+        pathTemp.shadowColor = 'black'
+        pathTemp.shadowBlur = 5
+      }
+    }
+  }
+}
+
 var idNuevo
 function pintaElementosTime(fecha1, fecha2) {
   arrayConsultaNombres = []
@@ -335,6 +423,19 @@ function pintaElementosTime(fecha1, fecha2) {
 $('#zoom').click(function () {
   zoomDo()
 })
+var btnAllDay = false
+$('#allDay').click(function  () {
+    if (btnAllDay) {
+      btnAllDay = false
+      $('#allDay').removeClass('btn-seleccion')
+      pintaElementos()
+    } else {
+      btnAllDay = true
+      $('#allDay').addClass('btn-seleccion')
+      pintaElementosPorDia()
+    }
+}
+)
 
 function zoomDo() {
   if (zoom) {
@@ -1421,7 +1522,11 @@ var calendar = $('#calendar').fullCalendar({
     fechaSeleccionada.setDate(fechaActual.getDate())
     fechaSeleccionada.setHours($('#horaActualRange').val())
     $('#horaActual').val($('#horaActualRange').val() + ':00 / '  +dias[fechaSeleccionada.getDay()] + " " + fechaSeleccionada.getDate() + " de " + mesNumtext(fechaSeleccionada.getMonth() + 1) + " del " + fechaSeleccionada.getFullYear())
-    pintaElementos()
+    if (btnAllDay) {
+      pintaElementosPorDia()
+    } else {
+      pintaElementos()
+    }
 
   },
   editable: false,
