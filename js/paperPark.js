@@ -32,37 +32,37 @@ var pathTempNuevo = new Path()
 var seleccionado = -1
 
 /* Variables de fecha actual para hacer la consulta incial */
-var fechaCompletaLocal = new Date()
-var fechaCompletaLocalArray = fechaCompletaLocal.toLocaleString().split(" ")
+// var fechaCompletaLocal = new Date()
+// var fechaCompletaLocalArray = fechaCompletaLocal.toLocaleString().split(" ")
 
-var fechaLocal = fechaCompletaLocalArray[0].split("/")
-var horaLocal = fechaCompletaLocalArray[1].split(":")
+// var fechaLocal = fechaCompletaLocalArray[0].split("/")
+// var horaLocal = fechaCompletaLocalArray[1].split(":")
 
 var hoy = new Date() // la fecha actual para la consulta
-hoy.setUTCFullYear(parseInt(fechaLocal[2]))
-hoy.setUTCMonth(parseInt(fechaLocal[1]) - 1)
-hoy.setUTCDate(parseInt(fechaLocal[0]))
-if (typeof fechaCompletaLocalArray[2] != 'undefined') {
-  if (fechaCompletaLocalArray[2].charAt(0) == 'p') {
-    hoy.setUTCHours(parseInt(horaLocal[0]) + 12)
-  } else if (fechaCompletaLocalArray[2].charAt(0) == 'a') {
-    if (parseInt(horaLocal[0]) == 12) {
-      hoy.setUTCHours(parseInt(horaLocal[0]) - 12)
-    } else {
-      hoy.setUTCHours(parseInt(horaLocal[0]))
-    }
-  }
-} else {
-  hoy.setUTCHours(parseInt(horaLocal[0]))
-}
-hoy.setUTCMinutes(0)
-hoy.setUTCSeconds(0)
-var dd = hoy.getUTCDate() // dia
+
+// hoy.setFullYear(parseInt(fechaLocal[2]))
+// hoy.setMonth(parseInt(fechaLocal[1]) - 1)
+// hoy.setDate(parseInt(fechaLocal[0]))
+// if (typeof fechaCompletaLocalArray[2] != 'undefined') {
+//   if (fechaCompletaLocalArray[2].charAt(0) == 'p') {
+//     hoy.setHours(parseInt(horaLocal[0]) + 12)
+//   } else if (fechaCompletaLocalArray[2].charAt(0) == 'a') {
+//     if (parseInt(horaLocal[0]) == 12) {
+//       hoy.setHours(parseInt(horaLocal[0]) - 12)
+//     } else {
+//       hoy.setHours(parseInt(horaLocal[0]))
+//     }
+//   }
+// } else {
+//   hoy.setHours(parseInt(horaLocal[0]))
+// }
+// hoy.setMinutes(0)
+// hoy.setSeconds(0)
+
+var dd = hoy.getDate() // dia
 var mm = hoy.getMonth() // hoy es 0!
 var yyyy = hoy.getFullYear() // año
 var dias = new Array('Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado');
-$('#horaActual').val(hoy.getUTCHours() + ':00' + " / " + dias[hoy.getDay()] + " " +  hoy.getUTCDate() + " de " + mesNumtext(hoy.getUTCMonth() + 1) + " del " + hoy.getUTCFullYear())
-$('#horaActualRange').val(hoy.getUTCHours())
 
 
 
@@ -73,16 +73,17 @@ $('#horaActualRange').val(hoy.getUTCHours())
 var mesText = mesNumtext(mm)
 var mesActual = mesText
 var fechaSeleccionada = hoy
-fechaSeleccionada.setUTCMinutes(0)
-fechaSeleccionada.setUTCSeconds(0)
-fechaSeleccionada.setUTCMilliseconds(0)
+$('#horaActual').val(fechaSeleccionada.getHours() + ':00' + " / " + dias[fechaSeleccionada.getDay()] + " " + fechaSeleccionada.getDate() + " de " + mesNumtext(fechaSeleccionada.getMonth() + 1) + " del " + fechaSeleccionada.getFullYear())
+$('#horaActualRange').val(hoy.getHours())
+fechaSeleccionada.setMinutes(0)
+fechaSeleccionada.setSeconds(0)
+fechaSeleccionada.setMilliseconds(0)
 consultarBaseDatos(yyyy + '-' + mm + '-' + dd)
 
 $('#horaActualRange').mousedown(function () {
-  //$('#horaActual').val($('#horaActualRange').val())
   $('#horaActualRange').mousemove(function () {
-    $('#horaActual').val($('#horaActualRange').val() + ':00' + " / " + dias[fechaSeleccionada.getUTCDay()] + " " +  fechaSeleccionada.getUTCDate() + " de " + mesNumtext(fechaSeleccionada.getUTCMonth() + 1) + " del " + fechaSeleccionada.getUTCFullYear())
-    fechaSeleccionada.setUTCHours($('#horaActualRange').val())
+    $('#horaActual').val($('#horaActualRange').val() + ':00' + " / " + dias[fechaSeleccionada.getDay()] + " " + fechaSeleccionada.getDate() + " de " + mesNumtext(fechaSeleccionada.getMonth() + 1) + " del " + fechaSeleccionada.getFullYear())
+    fechaSeleccionada.setHours($('#horaActualRange').val())
     pintaElementos()
   })
 })
@@ -188,13 +189,13 @@ function organizaFecha(cadenaFecha) {
   var h2 = parseInt(cadenaFecha.slice(11, 13))
   //var respuesta = new Date(y4, m2, d2, 23, 59, 59, 0)
   var respuesta = new Date()
-  respuesta.setUTCFullYear(y4)
-  respuesta.setUTCMonth(m2)
-  respuesta.setUTCDate(d2)
-  respuesta.setUTCHours(h2)
-  respuesta.setUTCMinutes(0)
-  respuesta.setUTCSeconds(0)
-  //respuesta.setUTCDate(respuesta.getDate() - 1)
+  respuesta.setFullYear(y4)
+  respuesta.setMonth(m2)
+  respuesta.setDate(d2)
+  respuesta.setHours(h2)
+  respuesta.setMinutes(0)
+  respuesta.setSeconds(0)
+  //respuesta.setDate(respuesta.getDate() - 1)
   return respuesta
 }
 function pintaElementos() {
@@ -202,6 +203,11 @@ function pintaElementos() {
   proporcion = (zoom) ? 1 : zoomProporcion
   var fechaInicialArray = new Date()
   var fechaFinalArray = new Date()
+  var fechaSeleccionadaInicial = new Date(fechaSeleccionada.getFullYear(), fechaSeleccionada.getMonth(), fechaSeleccionada.getDate(), fechaSeleccionada.getHours(), 0, 0)
+  var fechaSeleccionadaFinal = new Date()
+  fechaSeleccionadaFinal = fechaSeleccionada
+  fechaSeleccionadaFinal.setHours(23)
+
   var rotateElement = 0
   for (var i = 0; i < arrayElementosConsulta.length; i++) {
     var rotacion = 0
@@ -210,7 +216,11 @@ function pintaElementos() {
     arrayElementosConsulta[i].coordenada_y = parseInt(arrayElementosConsulta[i].coordenada_y)
     fechaInicialArray = organizaFecha(arrayElementosConsulta[i].fecha_incial)
     fechaFinalArray = organizaFecha(arrayElementosConsulta[i].fecha_final)
-    if (fechaInicialArray <= fechaSeleccionada && fechaFinalArray > fechaSeleccionada) {
+    if (
+      (fechaSeleccionadaInicial < fechaInicialArray && fechaSeleccionadaFinal > fechaInicialArray) ||
+      (fechaSeleccionadaFinal > fechaInicialArray && fechaSeleccionadaFinal <= fechaFinalArray) ||
+      (fechaSeleccionadaInicial >= fechaInicialArray && fechaSeleccionadaInicial < fechaFinalArray)
+    ) {
       fontSize = arrayElementosConsulta[i].ancho_x * proporcion * mts2
       rotateElement = arrayElementosConsulta[i].angulo
       if (parseInt(arrayElementosConsulta[i].ancho_x) < parseInt(arrayElementosConsulta[i].largo_y)) {
@@ -558,7 +568,7 @@ function mueveElemento(x, y, ancho, largo, fechaSeleccionada, fechaFinalInArray,
   var time1 = dateTime1.getHours() + ":" + "00:00"
   var date2 = dateTime2.getFullYear() + "-" + (dateTime2.getMonth() + 1) + "-" + dateTime2.getDate()
   var time2 = dateTime2.getHours() + ":" + dateTime2.getMinutes() + ":00"
-  dateTimeSeleccionada = fechaSeleccionada.getUTCFullYear() + "-" + (fechaSeleccionada.getUTCMonth() + 1) + "-" + fechaSeleccionada.getUTCDate() + " " + fechaSeleccionada.getUTCHours() + ":" + "00:00"
+  dateTimeSeleccionada = fechaSeleccionada.getFullYear() + "-" + (fechaSeleccionada.getMonth() + 1) + "-" + fechaSeleccionada.getDate() + " " + fechaSeleccionada.getHours() + ":" + "00:00"
   categoria = arrayElementosConsulta[nameSeleccionado].categoria
   cliente = arrayElementosConsulta[nameSeleccionado].cliente
   comentario = arrayElementosConsulta[nameSeleccionado].comentario
@@ -626,7 +636,7 @@ function guardarRotar() {
     y: arrayElementosConsulta[nameSeleccionado].coordenada_y
   })
   id = arrayElementosConsulta[nameSeleccionado].id
-  
+
   //dateTime1 = new Date(Date.parse(arrayElementosConsulta[nameSeleccionado].fecha_incial))
   fechaFinalInArray = arrayElementosConsulta[nameSeleccionado].fecha_final
   dateTime2 = new Date(Date.parse(fechaFinalInArray))
@@ -634,7 +644,7 @@ function guardarRotar() {
   var time1 = fechaSeleccionada.getHours() + ":" + "00:00"
   var date2 = dateTime2.getFullYear() + "-" + (dateTime2.getMonth() + 1) + "-" + dateTime2.getDate()
   var time2 = dateTime2.getHours() + ":" + dateTime2.getMinutes() + ":00"
-  dateTimeSeleccionada = fechaSeleccionada.getFullYear() + "-" + (fechaSeleccionada.getUTCMonth() + 1) + "-" + fechaSeleccionada.getUTCDate() + " " + fechaSeleccionada.getUTCHours() + ":" + "00:00"
+  dateTimeSeleccionada = fechaSeleccionada.getFullYear() + "-" + (fechaSeleccionada.getMonth() + 1) + "-" + fechaSeleccionada.getDate() + " " + fechaSeleccionada.getHours() + ":" + "00:00"
   categoria = arrayElementosConsulta[nameSeleccionado].categoria
   cliente = arrayElementosConsulta[nameSeleccionado].cliente
   comentario = arrayElementosConsulta[nameSeleccionado].comentario
@@ -985,7 +995,7 @@ $('#guardar').click(function () {
       y = arrayElementosConsulta[nameSeleccionado].coordenada_y
       zoomDo()
       if (revisaEspacio(x, y, ancho, largo, angulo, date1, time1, date2, time2, id)) {
-        var fechaRevisar = (fechaSeleccionada.getUTCFullYear() + '-' + (fechaSeleccionada.getUTCMonth() + 1) + '-' + fechaSeleccionada.getUTCDate() + ' ' + fechaSeleccionada.getUTCHours() + ':' + '00:00')
+        var fechaRevisar = (fechaSeleccionada.getFullYear() + '-' + (fechaSeleccionada.getMonth() + 1) + '-' + fechaSeleccionada.getDate() + ' ' + fechaSeleccionada.getHours() + ':' + '00:00')
         actualizarBD(
           x,
           y,
@@ -1371,8 +1381,8 @@ function actualizarBD(x, y, ancho, largo, date1, date2, time1, time2, categoria,
 }
 
 
-function reloadCalendar () {
-  calendar.fullCalendar( 'refetchEvents')
+function reloadCalendar() {
+  calendar.fullCalendar('refetchEvents')
 }
 // ///////////////////////////////////////////////////////////////////// calendario
 var calendar = $('#calendar').fullCalendar({
@@ -1388,25 +1398,29 @@ var calendar = $('#calendar').fullCalendar({
   dayNames: ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sábado'],
   dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'],
   buttonText:
-    {
-      prev: ' ◄ ',
-      next: ' ► ',
-      prevYear: ' &lt;&lt; ',
-      nextYear: ' &gt;&gt; ',
-      today: 'hoy',
-      month: 'mes',
-      week: 'semana',
-      day: 'día'
-    },
+  {
+    prev: ' ◄ ',
+    next: ' ► ',
+    prevYear: ' &lt;&lt; ',
+    nextYear: ' &gt;&gt; ',
+    today: 'hoy',
+    month: 'mes',
+    week: 'semana',
+    day: 'día'
+  },
+  nextDayThreshold: '00:00',
   events: 'calendario/load.php',
   selectable: true,
   selectHelper: true,
   select: function (start, end, allDay) {
+    console.log(start._d);
+    console.log(end._d);
     var fechaActual = new Date(start._d);
-    fechaSeleccionada.setUTCFullYear(fechaActual.getFullYear())
-    fechaSeleccionada.setUTCMonth(fechaActual.getMonth())
-    fechaSeleccionada.setUTCDate(fechaActual.getDate() + 1)
-    $('#horaActual').val($('#horaActualRange').val() + ':00' + " / " + dias[fechaSeleccionada.getUTCDay()] + " " +  fechaSeleccionada.getUTCDate() + " de " + mesNumtext(fechaSeleccionada.getUTCMonth() + 1) + " del " + fechaSeleccionada.getUTCFullYear())
+    fechaSeleccionada.setFullYear(fechaActual.getFullYear())
+    fechaSeleccionada.setMonth(fechaActual.getMonth())
+    fechaSeleccionada.setDate(fechaActual.getDate())
+    fechaSeleccionada.setHours($('#horaActualRange').val())
+    $('#horaActual').val($('#horaActualRange').val() + ':00 / '  +dias[fechaSeleccionada.getDay()] + " " + fechaSeleccionada.getDate() + " de " + mesNumtext(fechaSeleccionada.getMonth() + 1) + " del " + fechaSeleccionada.getFullYear())
     pintaElementos()
 
   },
@@ -1419,9 +1433,9 @@ var calendar = $('#calendar').fullCalendar({
     $('#anchoX_1').val(event.ancho);
     $('#cliente_1').val(event.title);
     $('#categoria_1').val(event.categorias);
-    $('#date_1').val(fechaStart.getFullYear() + '-' + (fechaStart.getMonth() + 1) + '-' + (fechaStart.getDate() + 1));
+    $('#date_1').val(fechaStart.getUTCFullYear() + '-' + (fechaStart.getUTCMonth() + 1) + '-' + (fechaStart.getUTCDate()));
     $('#time_1').val(event.startHora);
-    $('#date1_1').val(fechaEnd.getFullYear() + '-' + (fechaEnd.getMonth() + 1) + '-' + (fechaEnd.getDate()));
+    $('#date1_1').val(fechaEnd.getUTCFullYear() + '-' + (fechaEnd.getUTCMonth() + 1) + '-' + (fechaEnd.getUTCDate()));
     $('#time1_1').val(event.endHora);
     $('#comentario_1').html(event.comentario);
 

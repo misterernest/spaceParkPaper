@@ -1,8 +1,8 @@
 <?php
 
 //load.php
-
 require_once('../config.php');
+date_default_timezone_set('Europe/Madrid');
 $data = array();
 $colorCategoria = array(
   'SAILING_YACHT' =>"rgb(180, 0, 0)", //RED
@@ -23,8 +23,8 @@ $result = $statement->fetchAll(PDO::FETCH_ASSOC);
 foreach($result as $row)
 {
 
-	$horaStart= date('h:i', strtotime($row["fecha_incial"]));
-	$horaEnd= date('h:i', strtotime($row["fecha_final"]));
+	$horaStart= date('H:i', strtotime($row["fecha_incial"]));
+	$horaEnd= date('H:i', strtotime($row["fecha_final"]));
  $data[] = array(
   'id'   => $row["id"],
   'x'   => $row["coordenada_x"],
@@ -38,7 +38,7 @@ foreach($result as $row)
   'endHora'   => $horaEnd,
   'categorias'   => $row["categoria"],
   'comentario'   => $row["comentario"],
-	'color' => $colorCategoria[$row["categoria"]]
+  'color' => $colorCategoria[$row["categoria"]]
  );
 
 }
